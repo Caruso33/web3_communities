@@ -7,6 +7,7 @@ describe("Community", async () => {
   let community: Contract
   let accounts: SignerWithAddress[]
   let ownerAddress: string
+  let categories = ["Category 1", "Category 2"]
 
   beforeEach(async () => {
     const Community = await ethers.getContractFactory("Community")
@@ -46,8 +47,8 @@ describe("Community", async () => {
       assert.equal(categories.length, 2)
     })
   })
+
   describe("Post", function () {
-    let categories = ["Category 1", "Category 2"]
     beforeEach(async () => {
       for await (const category of categories) {
         await community.createCategory(category)
@@ -152,6 +153,47 @@ describe("Community", async () => {
       expect(updatedPost.lastUpdatedAt).to.equal(block.timestamp)
       expect(updatedPost.categoryIndex).to.equal(updateCategoryIndex)
       expect(updatedPost.comments.length).to.equal(0)
+    })
+  })
+
+  describe("Comment", function () {
+    beforeEach(async () => {
+      for await (const category of categories) {
+        await community.createCategory(category)
+      }
+
+      const title = "Title",
+        hash = ethers.utils.sha256(ethers.utils.toUtf8Bytes("Content 🥰")),
+        categoryIndex = 0
+
+      await community.createPost(title, hash, categoryIndex)
+    })
+
+    it("Should create a comment", async () => {
+      const hash = ethers.utils.sha256(
+        ethers.utils.toUtf8Bytes("Comment Content 🥰")
+      )
+      const postId = 1
+
+      const tx = await community.createComment(postId, hash)
+      const block = await ethers.provider.getBlock(tx.blockNumber)
+
+      const commentId = 0, commentLength = 1
+
+      await expect(tx)
+        .to.emit(community, "CommentCreated")
+        .withArgs(postId, ownerAddress, commentLength, hash, block.timestamp)
+
+      const comments = await community.fetchCommentsOfPost(postId)
+      const comment = comments[0]
+
+      expect(comment.author).to.equal(ownerAddress)
+      expect(comment.id).to.equal(commentId) 
+      expect(comment.content).to.equal(hash)
+      expect(comment.createdAt).to.equal(block.timestamp)
+      expect(comment.lastUpdatedAt).to.equal(block.timestamp)
+
+      expect(comments.length).to.equal(commentLength)
     })
   })
 })

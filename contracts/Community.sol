@@ -61,18 +61,19 @@ contract Community is Ownable {
     event CommentCreated(
         uint256 indexed postId,
         address indexed author,
-        uint256 id,
+        uint256 commentId,
         string hash,
         uint256 createdAt
     );
     event CommentUpdated(
         uint256 indexed postId,
         address indexed author,
-        uint256 id,
+        uint256 commentId,
         string hash,
         uint256 createdAt,
         uint256 lastUpdatedAt
     );
+    event CommentDeleted(uint256 postId, uint256 commentId);
 
     constructor(string memory _name) {
         name = _name;
@@ -170,19 +171,19 @@ contract Community is Ownable {
     }
 
     /* creates a new comment */
-    function createComment(uint256 postId, string memory hash)
-        public
-        onlyOwner
-    {
+    function createComment(uint256 postId, string memory hash) public {
         Post storage post = idToPost[postId];
 
-        Comment storage comment = post.comments[post.comments.length];
+        // Comment storage comment = post.comments[post.comments.length];
+        Comment memory comment;
+
         comment.author = msg.sender;
         comment.id = post.comments.length;
         comment.content = hash;
         comment.createdAt = block.timestamp;
+        comment.lastUpdatedAt = block.timestamp;
 
-        // post.comments.push(comment);
+        post.comments.push(comment);
 
         emit CommentCreated(
             postId,
@@ -220,6 +221,16 @@ contract Community is Ownable {
         );
     }
 
+    function deleteComment(uint256 postId, uint256 commentId) public onlyOwner {
+        Post storage post = idToPost[postId];
+
+        delete post.comments[commentId];
+
+        // idToPost[postId] = post;
+
+        emit CommentDeleted(postId, commentId);
+    }
+
     function fetchCategories() public view returns (string[] memory) {
         return categories;
     }
@@ -247,6 +258,26 @@ contract Community is Ownable {
         returns (Post memory)
     {
         return hashToPost[hash];
+    }
+
+    function fetchCommentsOfPost(uint256 postId)
+        public
+        view
+        returns (Comment[] memory)
+    {
+        Post storage post = idToPost[postId];
+
+        return post.comments;
+
+        // uint256 itemCount = post.comments.length;
+
+        // Comment[] memory comments = new Comment[](itemCount);
+        // for (uint256 i = 0; i < itemCount; i++) {
+        //     uint256 currentId = i + 1;
+        //     Comment storage currentItem = post.comments[currentId];
+        //     comments[i] = currentItem;
+        // }
+        // return comments;
     }
 
     modifier onlyPostAuthor(uint256 postId) {
