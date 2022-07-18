@@ -73,7 +73,12 @@ contract Community is Ownable {
         uint256 createdAt,
         uint256 lastUpdatedAt
     );
-    event CommentDeleted(uint256 postId, uint256 commentId);
+    event CommentDeleted(
+        uint256 indexed postId,
+        address indexed author,
+        uint256 commentId,
+        uint256 deletedAt
+    );
 
     constructor(string memory _name) {
         name = _name;
@@ -227,7 +232,7 @@ contract Community is Ownable {
 
         // idToPost[postId] = post;
 
-        emit CommentDeleted(postId, commentId);
+        emit CommentDeleted(postId, msg.sender, commentId, block.timestamp);
     }
 
     function fetchCategories() public view returns (string[] memory) {

@@ -242,5 +242,50 @@ describe("Community", async () => {
 
       expect(updatedComments.length).to.equal(commentLength)
     })
+
+    it("Should delete a comment", async () => {
+      const hash1 = ethers.utils.sha256(
+        ethers.utils.toUtf8Bytes("Comment Content 1 🥰")
+      )
+      const hash2 = ethers.utils.sha256(
+        ethers.utils.toUtf8Bytes("Comment Content 2 🥰")
+      )
+      const hash3 = ethers.utils.sha256(
+        ethers.utils.toUtf8Bytes("Comment Content 3 🥰")
+      )
+      const postId = 1,
+        commentId = 1,
+        commentLength = 3
+
+      await community.createComment(postId, hash1)
+      await community.createComment(postId, hash2)
+      await community.createComment(postId, hash3)
+
+      const comments = await community.fetchCommentsOfPost(postId)
+      const comment = comments[1]
+
+      expect(comment.content).to.equal(hash2)
+
+      expect(comments.length).to.equal(commentLength)
+
+      const tx = await community.deleteComment(postId, commentId)
+      const block = await ethers.provider.getBlock(tx.blockNumber)
+
+      await expect(tx)
+        .to.emit(community, "CommentDeleted")
+        .withArgs(postId, ownerAddress, commentId, block.timestamp)
+
+      const updatedComments = await community.fetchCommentsOfPost(postId)
+      expect(updatedComments[0].content).to.equal(hash1)
+      expect(updatedComments[2].content).to.equal(hash3)
+
+      expect(updatedComments[commentId].author).to.equal(
+        ethers.constants.AddressZero
+      )
+      expect(updatedComments[commentId].id).to.equal(0)
+      expect(updatedComments[commentId].content).to.equal("")
+      expect(updatedComments[commentId].createdAt).to.equal(0)
+      expect(updatedComments[commentId].lastUpdatedAt).to.equal(0)
+    })
   })
 })
