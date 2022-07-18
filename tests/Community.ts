@@ -173,12 +173,12 @@ describe("Community", async () => {
       const hash = ethers.utils.sha256(
         ethers.utils.toUtf8Bytes("Comment Content 🥰")
       )
-      const postId = 1
+      const postId = 1,
+        commentId = 0,
+        commentLength = 1
 
       const tx = await community.createComment(postId, hash)
       const block = await ethers.provider.getBlock(tx.blockNumber)
-
-      const commentId = 0, commentLength = 1
 
       await expect(tx)
         .to.emit(community, "CommentCreated")
@@ -188,12 +188,59 @@ describe("Community", async () => {
       const comment = comments[0]
 
       expect(comment.author).to.equal(ownerAddress)
-      expect(comment.id).to.equal(commentId) 
+      expect(comment.id).to.equal(commentId)
       expect(comment.content).to.equal(hash)
       expect(comment.createdAt).to.equal(block.timestamp)
       expect(comment.lastUpdatedAt).to.equal(block.timestamp)
 
       expect(comments.length).to.equal(commentLength)
+    })
+
+    it("Should update a comment", async () => {
+      const hash = ethers.utils.sha256(
+        ethers.utils.toUtf8Bytes("Comment Content 🥰")
+      )
+
+      const updatedHash = ethers.utils.sha256(
+        ethers.utils.toUtf8Bytes("Updated Comment Content 🥰")
+      )
+      const postId = 1,
+        commentId = 0,
+        commentLength = 1
+
+      await community.createComment(postId, hash)
+
+      const comments = await community.fetchCommentsOfPost(postId)
+      const comment = comments[0]
+
+      expect(comment.content).to.equal(hash)
+
+      expect(comments.length).to.equal(commentLength)
+
+      const tx = await community.updateComment(postId, commentId, updatedHash)
+      const block = await ethers.provider.getBlock(tx.blockNumber)
+
+      await expect(tx)
+        .to.emit(community, "CommentUpdated")
+        .withArgs(
+          postId,
+          ownerAddress,
+          commentId,
+          updatedHash,
+          comment.createdAt,
+          block.timestamp
+        )
+
+      const updatedComments = await community.fetchCommentsOfPost(postId)
+      const updatedComment = updatedComments[0]
+
+      expect(updatedComment.author).to.equal(ownerAddress)
+      expect(updatedComment.id).to.equal(commentId)
+      expect(updatedComment.content).to.equal(updatedHash)
+      expect(updatedComment.createdAt).to.equal(comment.createdAt)
+      expect(updatedComment.lastUpdatedAt).to.equal(block.timestamp)
+
+      expect(updatedComments.length).to.equal(commentLength)
     })
   })
 })

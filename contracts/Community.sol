@@ -206,10 +206,9 @@ contract Community is Ownable {
         comment.content = hash;
         comment.lastUpdatedAt = block.timestamp;
 
+        // not needed, storage pointers!
         // post.comments[commentId] = comment;
-
-        idToPost[postId] = post;
-        hashToPost[hash] = post;
+        // idToPost[postId] = post;
 
         emit CommentUpdated(
             postId,
