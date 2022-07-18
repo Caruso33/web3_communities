@@ -9,7 +9,7 @@ error Blog__onlyOwner();
 error Blog__onlyPostAuthor();
 error Blog__onlyCommentAuthor();
 
-contract Blog is Ownable {
+contract Community is Ownable {
     string public name;
 
     using Counters for Counters.Counter;
@@ -28,13 +28,15 @@ contract Blog is Ownable {
         uint256 id;
         string title;
         string content;
+        uint256 categoryIndex;
         bool published;
         uint256 createdAt;
         uint256 lastUpdatedAt;
         Comment[] comments;
     }
-    /* mappings can be seen as hash tables */
-    /* here we create lookups for posts by id and posts by ipfs hash */
+
+    string[] public categories;
+
     mapping(uint256 => Post) private idToPost;
     mapping(string => Post) private hashToPost;
 
@@ -43,6 +45,7 @@ contract Blog is Ownable {
         uint256 id,
         string title,
         string hash,
+        uint256 categoryIndex,
         uint256 createdAt
     );
     event PostUpdated(
@@ -50,6 +53,7 @@ contract Blog is Ownable {
         uint256 id,
         string title,
         string hash,
+        uint256 categoryIndex,
         bool published,
         uint256 createdAt,
         uint256 lastUpdatedAt
@@ -70,24 +74,43 @@ contract Blog is Ownable {
         uint256 lastUpdatedAt
     );
 
-    /* when the blog is deployed, give it a name */
-    /* also set the creator as the owner of the contract */
     constructor(string memory _name) {
-        console.log("Deploying Blog with name:", _name);
         name = _name;
     }
 
-    function updateName(string memory _name) public {
+    function updateName(string memory _name) public onlyOwner {
         name = _name;
     }
 
-    /* fetches an individual post by the content hash */
-    function fetchPost(string memory hash) public view returns (Post memory) {
-        return hashToPost[hash];
+    function createCategory(string memory _name)
+        public
+        onlyOwner
+        returns (bool success)
+    {
+        bool isDuplicate = false;
+
+        for (uint256 i = 0; i < categories.length; i++) {
+            if (
+                keccak256(abi.encodePacked(categories[i])) ==
+                keccak256(abi.encodePacked(_name))
+            ) {
+                isDuplicate = true;
+                success = false;
+                break;
+            }
+        }
+        if (!isDuplicate) {
+            categories.push(_name);
+            success = true;
+        }
     }
 
     /* creates a new post */
-    function createPost(string memory title, string memory hash) public {
+    function createPost(
+        string memory title,
+        string memory hash,
+        uint256 categoryIndex
+    ) public {
         _postIds.increment();
         uint256 postId = _postIds.current();
 
@@ -100,11 +123,19 @@ contract Blog is Ownable {
         post.published = true;
         post.createdAt = block.timestamp;
         post.lastUpdatedAt = block.timestamp;
+        post.categoryIndex = categoryIndex;
         // post.comments = new Comment[](0);
 
         hashToPost[hash] = post;
 
-        emit PostCreated(msg.sender, postId, title, hash, block.timestamp);
+        emit PostCreated(
+            msg.sender,
+            postId,
+            title,
+            hash,
+            categoryIndex,
+            block.timestamp
+        );
     }
 
     /* updates an existing post */
@@ -112,6 +143,7 @@ contract Blog is Ownable {
         uint256 postId,
         string memory title,
         string memory hash,
+        uint256 categoryIndex,
         bool published
     ) public onlyPostAuthor(postId) {
         Post storage post = idToPost[postId];
@@ -129,6 +161,7 @@ contract Blog is Ownable {
             post.id,
             title,
             hash,
+            categoryIndex,
             published,
             post.createdAt,
             post.lastUpdatedAt
@@ -197,6 +230,10 @@ contract Blog is Ownable {
             posts[i] = currentItem;
         }
         return posts;
+    }
+
+    function fetchPost(string memory hash) public view returns (Post memory) {
+        return hashToPost[hash];
     }
 
     modifier onlyPostAuthor(uint256 postId) {
