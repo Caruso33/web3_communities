@@ -120,10 +120,10 @@ contract Community is Ownable {
         post.id = postId;
         post.title = title;
         post.content = hash;
+        post.categoryIndex = categoryIndex;
         post.published = true;
         post.createdAt = block.timestamp;
         post.lastUpdatedAt = block.timestamp;
-        post.categoryIndex = categoryIndex;
         // post.comments = new Comment[](0);
 
         hashToPost[hash] = post;
@@ -150,6 +150,7 @@ contract Community is Ownable {
 
         post.title = title;
         post.content = hash;
+        post.categoryIndex = categoryIndex;
         post.published = published;
         post.lastUpdatedAt = block.timestamp;
 
@@ -236,7 +237,15 @@ contract Community is Ownable {
         return posts;
     }
 
-    function fetchPost(string memory hash) public view returns (Post memory) {
+    function fetchPostById(uint256 postId) public view returns (Post memory) {
+        return idToPost[postId];
+    }
+
+    function fetchPostByHash(string memory hash)
+        public
+        view
+        returns (Post memory)
+    {
         return hashToPost[hash];
     }
 

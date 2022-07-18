@@ -8,6 +8,7 @@
   "scripts": {
     "compile": "yarn hardhat compile",
     "test": "yarn hardhat test",
+    "test:watch": "nodemon --exec 'hardhat test' -w ./tests/* -w ./contracts/*",
     "node": "yarn hardhat node",
     "deploy": "yarn hardhat run scripts/deploy.ts"
   },
