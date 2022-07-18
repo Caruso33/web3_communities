@@ -9,9 +9,10 @@ import {
 import { InjectedConnector } from "wagmi/connectors/injected"
 import { alchemyProvider } from "wagmi/providers/alchemy"
 // import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
+import { MetaMaskConnector } from "wagmi/connectors/metaMask"
 import { publicProvider } from "wagmi/providers/public"
 
-const { chains, provider } = configureChains(
+const { chains, provider, webSocketProvider } = configureChains(
   [
     ...defaultChains,
     chain.polygon,
@@ -35,7 +36,10 @@ const { chains, provider } = configureChains(
 )
 const wagmiClient = createClient({
   autoConnect: true,
-  connectors: [new InjectedConnector({ chains })],
+  connectors: [
+    new MetaMaskConnector({ chains }),
+    new InjectedConnector({ chains }),
+  ],
   provider,
   // provider: (config) => {
   //   if (config.chainId === chain.localhost.id) {
@@ -46,8 +50,9 @@ const wagmiClient = createClient({
   //   return provider(config);
   //   // return getDefaultProvider(config.chainId);
   // },
+  webSocketProvider,
 })
 
-export default function Wagmi({ children }) {
+export default function Wagmi({ children }: { children: React.ReactNode }) {
   return <WagmiConfig client={wagmiClient}>{children}</WagmiConfig>
 }
