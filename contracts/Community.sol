@@ -35,7 +35,7 @@ contract Community is Ownable {
         Comment[] comments;
     }
 
-    string[] public categories;
+    string[] private categories;
 
     mapping(uint256 => Post) private idToPost;
     mapping(string => Post) private hashToPost;
@@ -217,6 +217,10 @@ contract Community is Ownable {
             comment.createdAt,
             comment.lastUpdatedAt
         );
+    }
+
+    function fetchCategories() public view returns (string[] memory) {
+        return categories;
     }
 
     /* fetches all posts */
