@@ -5,9 +5,10 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-error Blog__onlyOwner();
-error Blog__onlyPostAuthor();
-error Blog__onlyCommentAuthor();
+error Community__onlyOwner();
+error Community__onlyPostAuthor();
+error Community__onlyCommentAuthor();
+error Community__DuplicateCategory();
 
 contract Community is Ownable {
     string public name;
@@ -88,27 +89,17 @@ contract Community is Ownable {
         name = _name;
     }
 
-    function createCategory(string memory _name)
-        public
-        onlyOwner
-        returns (bool success)
-    {
-        bool isDuplicate = false;
-
+    function createCategory(string memory _name) public onlyOwner {
         for (uint256 i = 0; i < categories.length; i++) {
             if (
                 keccak256(abi.encodePacked(categories[i])) ==
                 keccak256(abi.encodePacked(_name))
             ) {
-                isDuplicate = true;
-                success = false;
-                break;
+                revert Community__DuplicateCategory();
             }
         }
-        if (!isDuplicate) {
-            categories.push(_name);
-            success = true;
-        }
+
+        categories.push(_name);
     }
 
     /* creates a new post */
@@ -287,7 +278,7 @@ contract Community is Ownable {
     modifier onlyPostAuthor(uint256 postId) {
         Post storage post = idToPost[postId];
 
-        if (msg.sender != post.author) revert Blog__onlyPostAuthor();
+        if (msg.sender != post.author) revert Community__onlyPostAuthor();
         _;
     }
 
@@ -295,7 +286,7 @@ contract Community is Ownable {
         Post storage post = idToPost[postId];
         Comment storage comment = post.comments[commentId];
 
-        if (msg.sender != comment.author) revert Blog__onlyCommentAuthor();
+        if (msg.sender != comment.author) revert Community__onlyCommentAuthor();
         _;
     }
 }

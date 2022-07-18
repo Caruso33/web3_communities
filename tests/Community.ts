@@ -27,6 +27,20 @@ describe("Community", async () => {
     it("Should set the right name", async () => {
       expect(await community.name()).to.equal("My Community")
     })
+
+    it("Should update the name", async () => {
+      const newName = "My updated Community"
+
+      await community.updateName(newName)
+
+      expect(await community.name()).to.equal(newName)
+    })
+
+    it("Should revert when not owner on update the name", async () => {
+      await expect(
+        community.connect(accounts[1]).updateName("My updated Community")
+      ).to.be.revertedWith("Ownable: caller is not the owner")
+    })
   })
 
   describe("Category", function () {
@@ -45,6 +59,24 @@ describe("Community", async () => {
       categories = await community.fetchCategories()
       expect((await community.fetchCategories())[1]).to.equal("Category 2")
       assert.equal(categories.length, 2)
+    })
+
+    it("Should revert when creating duplicate category", async () => {
+      let categories = await community.fetchCategories()
+      assert.equal(categories.length, 0)
+
+      await community.createCategory("Category 1")
+      await community.createCategory("Category 2")
+
+      await expect(
+        community.createCategory("Category 2")
+      ).to.be.revertedWithCustomError(community, "Community__DuplicateCategory")
+    })
+
+    it("Should revert when not owner on create category", async () => {
+      await expect(
+        community.connect(accounts[1]).createCategory("Category 1")
+      ).to.be.revertedWith("Ownable: caller is not the owner")
     })
   })
 
@@ -154,6 +186,42 @@ describe("Community", async () => {
       expect(updatedPost.categoryIndex).to.equal(updateCategoryIndex)
       expect(updatedPost.comments.length).to.equal(0)
     })
+
+    it("Should revert when not author on update a post", async () => {
+      const title = "Title",
+        hash = ethers.utils.sha256(ethers.utils.toUtf8Bytes("Content 🥰")),
+        categoryIndex = 0
+
+      const updateTitle = "Title 2",
+        updateHash = ethers.utils.sha256(
+          ethers.utils.toUtf8Bytes("Updated Content 🥰")
+        ),
+        updateCategoryIndex = 1,
+        updatePublished = false
+
+      await community.createPost(title, hash, categoryIndex)
+
+      const postId = 1
+
+      const post = await community.fetchPostById(postId)
+      expect(post.title).to.equal(title)
+      expect(post.content).to.equal(hash)
+
+      const tx = community
+        .connect(accounts[1])
+        .updatePost(
+          postId,
+          updateTitle,
+          updateHash,
+          updateCategoryIndex,
+          updatePublished
+        )
+
+      await expect(tx).to.be.revertedWithCustomError(
+        community,
+        "Community__onlyPostAuthor"
+      )
+    })
   })
 
   describe("Comment", function () {
@@ -241,6 +309,37 @@ describe("Community", async () => {
       expect(updatedComment.lastUpdatedAt).to.equal(block.timestamp)
 
       expect(updatedComments.length).to.equal(commentLength)
+    })
+
+    it("Should revert when not author on update a comment", async () => {
+      const hash = ethers.utils.sha256(
+        ethers.utils.toUtf8Bytes("Comment Content 🥰")
+      )
+
+      const updatedHash = ethers.utils.sha256(
+        ethers.utils.toUtf8Bytes("Updated Comment Content 🥰")
+      )
+      const postId = 1,
+        commentId = 0,
+        commentLength = 1
+
+      await community.createComment(postId, hash)
+
+      const comments = await community.fetchCommentsOfPost(postId)
+      const comment = comments[0]
+
+      expect(comment.content).to.equal(hash)
+
+      expect(comments.length).to.equal(commentLength)
+
+      const tx = community
+        .connect(accounts[1])
+        .updateComment(postId, commentId, updatedHash)
+
+      await expect(tx).to.be.revertedWithCustomError(
+        community,
+        "Community__onlyCommentAuthor"
+      )
     })
 
     it("Should delete a comment", async () => {
