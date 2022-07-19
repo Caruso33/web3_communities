@@ -1,13 +1,15 @@
+import { ChevronRightIcon } from "@chakra-ui/icons"
 import type { NextPage } from "next"
 import Head from "next/head"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
+import type { PostStruct } from "../../typechain-types/contracts/Community"
 import Header from "../components/Header"
 import { useIsMounted } from "../hooks"
 import useLoadContracts from "../hooks/useLoadContract"
 import { RootState } from "../state/store"
-import {ChevronRightIcon} from '@chakra-ui/icons'
+
 const Home: NextPage = () => {
   const isMounted = useIsMounted()
   useLoadContracts()
@@ -39,18 +41,21 @@ const Home: NextPage = () => {
 
       {isMounted && <Header />}
 
-      {
-        posts.map((post, index) => (
-          <Link href={`/post/${post[2]}`} key={index}>
+      {posts.map((post: PostStruct, index) => {
+        return (
+          <Link href={`/post/${post.title}`} key={index}>
             <a>
               <div>
-                <p>{post[1]}</p>
-                < ChevronRightIcon />
+                <p>Author: {post.author}</p>
+                <p>Title: {post.title}</p>
+                <p>Content: {post.content}</p>
+                <p>Comments: {post.comments}</p>
+                <ChevronRightIcon />
               </div>
             </a>
           </Link>
-        ))
-      }
+        )
+      })}
     </div>
   )
 }

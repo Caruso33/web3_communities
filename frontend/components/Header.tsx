@@ -33,7 +33,7 @@ function Header() {
     )
 
     const deployedChainIds = Object.keys(deployment)
-      .filter((chainIdString) => chainIdString !== "1337")
+      // .filter((chainIdString) => chainIdString !== "1337")
       .map((chainIdString) => +chainIdString)
 
     if (!deployedChainIds?.includes(chain?.id)) {
