@@ -1,12 +1,12 @@
-import "@nomicfoundation/hardhat-toolbox";
-import "@nomiclabs/hardhat-ethers";
-import "@nomiclabs/hardhat-etherscan";
-import "@nomiclabs/hardhat-waffle";
-import "@typechain/hardhat";
-import "hardhat-deploy";
-import "hardhat-gas-reporter";
-import { HardhatUserConfig } from "hardhat/config";
-
+import "@nomicfoundation/hardhat-toolbox"
+import "@nomiclabs/hardhat-ethers"
+import "@nomiclabs/hardhat-etherscan"
+import "@nomiclabs/hardhat-waffle"
+import "@typechain/hardhat"
+import "hardhat-deploy"
+import "hardhat-gas-reporter"
+import "hardhat-deploy"
+import { HardhatUserConfig } from "hardhat/config"
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -28,7 +28,7 @@ const config: HardhatUserConfig = {
       chainId: 1337,
     },
     mumbai: {
-      url: process.env.ROPSTEN_URL || "",
+      url: process.env.POLYGON_MUMBAI || "",
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
       chainId: 80001,
@@ -40,6 +40,15 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
+  },
+  mocha: {
+    timeout: 100000,
+  },
+  namedAccounts: {
+    deployer: {
+      default: 0,
+      1: 0, // use first account for mainnet (chainId 1)
+    },
   },
 }
 
