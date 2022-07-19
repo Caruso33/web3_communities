@@ -120,7 +120,6 @@ describe("Community", async () => {
       expect(post.createdAt).to.equal(block.timestamp)
       expect(post.lastUpdatedAt).to.equal(block.timestamp)
       expect(post.categoryIndex).to.equal(0)
-      expect(post.comments.length).to.equal(0)
 
       expect(posts.length).to.equal(1)
 
@@ -184,7 +183,6 @@ describe("Community", async () => {
       expect(updatedPost.createdAt).to.equal(post.createdAt)
       expect(updatedPost.lastUpdatedAt).to.equal(block.timestamp)
       expect(updatedPost.categoryIndex).to.equal(updateCategoryIndex)
-      expect(updatedPost.comments.length).to.equal(0)
     })
 
     it("Should revert when not author on update a post", async () => {

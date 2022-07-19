@@ -34,13 +34,13 @@ contract Community is Ownable {
         bool published;
         uint256 createdAt;
         uint256 lastUpdatedAt;
-        Comment[] comments;
     }
 
     string[] private categories;
 
     mapping(uint256 => Post) private idToPost;
     mapping(string => Post) private hashToPost;
+    mapping(uint256 => Comment[]) private postIdToComments;
 
     event PostCreated(
         address indexed author,
@@ -122,7 +122,6 @@ contract Community is Ownable {
         post.published = true;
         post.createdAt = block.timestamp;
         post.lastUpdatedAt = block.timestamp;
-        // post.comments = new Comment[](0);
 
         hashToPost[hash] = post;
 
@@ -170,24 +169,25 @@ contract Community is Ownable {
     /* creates a new comment */
     function createComment(uint256 postId, string memory hash) public {
         Post storage post = idToPost[postId];
-
         if (post.author == address(0x0)) revert Community__PostIdNotValid();
+
+        Comment[] storage comments = postIdToComments[postId];
 
         // Comment storage comment = post.comments[post.comments.length];
         Comment memory comment;
 
         comment.author = msg.sender;
-        comment.id = post.comments.length;
+        comment.id = comments.length;
         comment.content = hash;
         comment.createdAt = block.timestamp;
         comment.lastUpdatedAt = block.timestamp;
 
-        post.comments.push(comment);
+        comments.push(comment);
 
         emit CommentCreated(
             postId,
             msg.sender,
-            post.comments.length,
+            comments.length,
             hash,
             block.timestamp
         );
@@ -199,9 +199,9 @@ contract Community is Ownable {
         uint256 commentId,
         string memory hash
     ) public onlyCommentAuthor(postId, commentId) {
-        Post storage post = idToPost[postId];
+        Comment[] storage comments = postIdToComments[postId];
 
-        Comment storage comment = post.comments[commentId];
+        Comment storage comment = comments[commentId];
         comment.content = hash;
         comment.lastUpdatedAt = block.timestamp;
 
@@ -220,11 +220,9 @@ contract Community is Ownable {
     }
 
     function deleteComment(uint256 postId, uint256 commentId) public onlyOwner {
-        Post storage post = idToPost[postId];
+        Comment[] storage comments = postIdToComments[postId];
 
-        delete post.comments[commentId];
-
-        // idToPost[postId] = post;
+        delete comments[commentId];
 
         emit CommentDeleted(postId, msg.sender, commentId, block.timestamp);
     }
@@ -263,9 +261,9 @@ contract Community is Ownable {
         view
         returns (Comment[] memory)
     {
-        Post storage post = idToPost[postId];
+        Comment[] storage comments = postIdToComments[postId];
 
-        return post.comments;
+        return comments;
 
         // uint256 itemCount = post.comments.length;
 
@@ -286,8 +284,9 @@ contract Community is Ownable {
     }
 
     modifier onlyCommentAuthor(uint256 postId, uint256 commentId) {
-        Post storage post = idToPost[postId];
-        Comment storage comment = post.comments[commentId];
+        Comment[] storage comments = postIdToComments[postId];
+
+        Comment storage comment = comments[commentId];
 
         if (msg.sender != comment.author) revert Community__onlyCommentAuthor();
         _;
