@@ -1,6 +1,6 @@
 import { useAccount, useConnect, useDisconnect, useNetwork } from "wagmi"
 import { InjectedConnector } from "wagmi/connectors/injected"
-import { deployedChains } from "../utils/constants"
+import deployment from "../utils/deployment.json"
 
 function Header() {
   const { address, isConnected } = useAccount()
@@ -32,15 +32,21 @@ function Header() {
       </div>
     )
 
-    const deployedChainNames = deployedChains.map(
-      (deployedChain) => deployedChain.name
-    )
+    const deployedChainIds = Object.keys(deployment)
+      .filter((chainIdString) => chainIdString !== "1337")
+      .map((chainIdString) => +chainIdString)
 
-    if (!deployedChainNames?.includes(chain?.name)) {
+    if (!deployedChainIds?.includes(chain?.id)) {
+      const deployedChainNames = chains
+        .filter((chain) => deployedChainIds.includes(chain.id))
+        .map((chain) => chain.name)
+
       return (
         <>
           {content}
-          <div>Please connect to {deployedChainNames[0]} chain</div>
+          <div>
+            Please connect to one of the chain(s): {deployedChainNames.join(", ")}
+          </div>
         </>
       )
     }
