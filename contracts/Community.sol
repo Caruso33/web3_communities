@@ -9,6 +9,7 @@ error Community__onlyOwner();
 error Community__onlyPostAuthor();
 error Community__onlyCommentAuthor();
 error Community__DuplicateCategory();
+error Community__PostIdNotValid();
 
 contract Community is Ownable {
     string public name;
@@ -169,6 +170,8 @@ contract Community is Ownable {
     /* creates a new comment */
     function createComment(uint256 postId, string memory hash) public {
         Post storage post = idToPost[postId];
+
+        if (post.author == address(0x0)) revert Community__PostIdNotValid();
 
         // Comment storage comment = post.comments[post.comments.length];
         Comment memory comment;

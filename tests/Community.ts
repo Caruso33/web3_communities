@@ -264,6 +264,20 @@ describe("Community", async () => {
       expect(comments.length).to.equal(commentLength)
     })
 
+    it("Should revert when post does not exist", async () => {
+      const hash = ethers.utils.sha256(
+        ethers.utils.toUtf8Bytes("Comment Content 🥰")
+      )
+      const postId = 5
+
+      const tx = community.createComment(postId, hash)
+
+      await expect(tx).to.be.revertedWithCustomError(
+        community,
+        "Community__PostIdNotValid"
+      )
+    })
+
     it("Should update a comment", async () => {
       const hash = ethers.utils.sha256(
         ethers.utils.toUtf8Bytes("Comment Content 🥰")

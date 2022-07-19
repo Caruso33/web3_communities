@@ -11,7 +11,8 @@
     "test:watch": "nodemon --exec 'hardhat test' -w ./tests/* -w ./contracts/*",
     "coverage": "yarn hardhat coverage",
     "node": "yarn hardhat node",
-    "deploy": "yarn hardhat run scripts/deploy.ts"
+    "deploy": "yarn hardhat deploy",
+    "fetchCategories": "yarn hardhat fetchCategories --address DEPLOYED_ADDRESS --network localhost"
   },
   "dependencies": {
     "hardhat": "^2.10.1"

@@ -1,19 +1,33 @@
 import type { NextPage } from "next"
 import Head from "next/head"
+import Link from "next/link"
+import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import Header from "../components/Header"
 import { useIsMounted } from "../hooks"
 import useLoadContracts from "../hooks/useLoadContract"
 import { RootState } from "../state/store"
-
+import {ChevronRightIcon} from '@chakra-ui/icons'
 const Home: NextPage = () => {
   const isMounted = useIsMounted()
-
   useLoadContracts()
 
   const contractStore = useSelector((state: RootState) => state.contract)
 
-  console.dir(contractStore)
+  const [posts, setPosts] = useState([])
+
+  useEffect(() => {
+    async function fetchPosts() {
+      const communityContract = contractStore?.community
+      if (!communityContract || posts?.length > 0) {
+        return
+      }
+
+      const posts = await communityContract.fetchPosts()
+      setPosts(posts)
+    }
+    fetchPosts()
+  }, [contractStore?.community, posts])
 
   return (
     <div>
@@ -25,7 +39,18 @@ const Home: NextPage = () => {
 
       {isMounted && <Header />}
 
-      <main>Main</main>
+      {
+        posts.map((post, index) => (
+          <Link href={`/post/${post[2]}`} key={index}>
+            <a>
+              <div>
+                <p>{post[1]}</p>
+                < ChevronRightIcon />
+              </div>
+            </a>
+          </Link>
+        ))
+      }
     </div>
   )
 }
