@@ -20,7 +20,23 @@ function Header() {
 
   if (!isConnected)
     content = (
-      <Box border="1px" borderColor="gray.200" px={5} py={2}>
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        border="1px"
+        borderColor="gray.200"
+        px={5}
+        py={2}
+      >
+        <Image
+          src="/logo-small-transparent.png"
+          alt="Web3 Community Builder"
+          // 1080 × 446
+          width="146"
+          height="60"
+        />
+
         <Button onClick={() => connect()}>Connect Wallet</Button>
       </Box>
     )
@@ -48,14 +64,14 @@ function Header() {
             <Text noOfLines={1}>Connected to {address}</Text>{" "}
             <Text>on network {chain?.name}</Text>
           </Box>
-
-          <Button ml={2} onClick={() => disconnect()}>
-            Disconnect
-          </Button>
         </Box>
 
         <Box ml={5}>
-          <Button onClick={toggleColorMode}>
+          <Button ml={2} onClick={() => disconnect()}>
+            Disconnect
+          </Button>
+
+          <Button ml={2} onClick={toggleColorMode}>
             {colorMode === "light" ? <MoonIcon /> : <SunIcon />}
           </Button>
         </Box>
