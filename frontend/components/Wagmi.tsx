@@ -1,4 +1,4 @@
-// import { providers } from "ethers";
+// import { providers } from "ethers"
 import {
   chain,
   configureChains,
@@ -8,7 +8,7 @@ import {
 } from "wagmi"
 import { InjectedConnector } from "wagmi/connectors/injected"
 import { alchemyProvider } from "wagmi/providers/alchemy"
-// import { jsonRpcProvider } from "wagmi/providers/jsonRpc"
+import { jsonRpcProvider } from "wagmi/providers/jsonRpc"
 import { MetaMaskConnector } from "wagmi/connectors/metaMask"
 import { publicProvider } from "wagmi/providers/public"
 // import { JsonRpcProvider } from "@ethersproject/providers"
@@ -22,15 +22,17 @@ const { chains, provider, webSocketProvider } = configureChains(
     chain.localhost,
   ],
   [
+    jsonRpcProvider({
+      rpc: (_chain) => {
+        return {
+          http: "http://localhost:8545",
+        }
+      },
+    }),
+
     alchemyProvider({
       alchemyId: process.env.NEXT_PUBLIC_ALCHEMY_ID,
     }),
-
-    // jsonRpcProvider({
-    //   rpc: (_chain) => ({
-    //     http: "http://localhost:8545",
-    //   }),
-    // }),
 
     publicProvider(),
   ]
@@ -43,12 +45,18 @@ const wagmiClient = createClient({
   ],
   provider,
   // provider: (config) => {
-  //   if (config.chainId === chain.localhost.id) {
-  //     return new providers.JsonRpcProvider();
-  //   }
-  //   // console.dir(chains, chain, config);
+  //   console.dir(config)
 
-  //   return provider(config);
+  //   if (
+  //     config.chainId === chain.localhost.id ||
+  //     (!config.chainId &&
+  //       process.env.NEXT_PUBLIC_DEPLOYED_CHAIN_ID &&
+  //       +process.env.NEXT_PUBLIC_DEPLOYED_CHAIN_ID === 1337)
+  //   ) {
+  //     return new providers.JsonRpcProvider()
+  //   }
+
+  //   return provider(config)
   //   // return getDefaultProvider(config.chainId);
   // },
   webSocketProvider,

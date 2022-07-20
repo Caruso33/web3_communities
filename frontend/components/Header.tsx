@@ -61,8 +61,12 @@ function Header() {
           />
 
           <Box ml={5}>
-            <Text noOfLines={1}>Connected to {address}</Text>{" "}
-            <Text>on network {chain?.name}</Text>
+            <Text noOfLines={1}>
+              Connected to <pre style={{ display: "inline" }}>{address}</pre>
+            </Text>{" "}
+            <Text>
+              on network <pre style={{ display: "inline" }}>{chain?.name}</pre>
+            </Text>
           </Box>
         </Box>
 

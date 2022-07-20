@@ -24,7 +24,7 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     async function fetchPosts() {
-      const communityContract = contractStore?.community
+      const communityContract = contractStore?.communityProvider
       if (!communityContract || postsCommentsStore.isPostsLoaded) {
         return
       }
@@ -45,7 +45,7 @@ const Home: NextPage = () => {
 
     fetchPosts()
   }, [
-    contractStore?.community,
+    contractStore?.communityProvider,
     postsCommentsStore.isPostsLoaded,
     postsCommentsStore.posts,
     dispatch,
@@ -78,7 +78,7 @@ const Home: NextPage = () => {
                   w="60vw"
                   key={`${post.title}_${index}`}
                 >
-                  <Link href={`/post/${post.title}`}>
+                  <Link href={`/post/${post.id}`}>
                     <Box w="100%" style={{ cursor: "pointer" }}>
                       <ChevronRightIcon
                         boxSize={50}

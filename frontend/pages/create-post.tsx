@@ -17,7 +17,6 @@ import {
 import "easymde/dist/easymde.min.css"
 import Image from "next/image"
 import { useDispatch, useSelector } from "react-redux"
-import Header from "../components/Header"
 import useLoadContracts from "../hooks/useLoadContract"
 import { setCategories, setIsPostsLoaded } from "../state/postComment"
 import { RootState } from "../state/store"
@@ -50,7 +49,7 @@ function CreatePost() {
   const [postError, setPostError] = useState({ title: false, content: false })
   const [image, setImage] = useState(null)
 
-  const [selectedCategory, setSelectedCategory] = useState<number>(null)
+  const [selectedCategory, setSelectedCategory] = useState<number>("")
 
   const [isLoading, setIsLoading] = useState(false)
 
@@ -60,7 +59,7 @@ function CreatePost() {
 
   useEffect(() => {
     async function fetchCategories() {
-      const communityContract = contractStore?.community
+      const communityContract = contractStore?.communityProvider
       if (!communityContract || postsCommentsStore.isCategoriesLoaded) {
         return
       }
@@ -125,7 +124,7 @@ function CreatePost() {
   }
 
   function savePost(cid: string) {
-    const communityContract = contractStore?.community
+    const communityContract = contractStore?.communitySigner
     if (!communityContract) {
       throw new Error(
         "No community contract found. Please make sure to be connected with Metamask."
