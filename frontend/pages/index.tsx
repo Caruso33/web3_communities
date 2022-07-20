@@ -1,13 +1,15 @@
 import { ChevronRightIcon } from "@chakra-ui/icons"
+import { Button } from "@chakra-ui/react"
 import type { NextPage } from "next"
 import Head from "next/head"
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import type { PostStruct } from "../../typechain-types/contracts/Community"
 import Header from "../components/Header"
 import { useIsMounted } from "../hooks"
 import useLoadContracts from "../hooks/useLoadContract"
+import { setPosts } from "../state/postComment"
 import { RootState } from "../state/store"
 
 const Home: NextPage = () => {
@@ -15,21 +17,26 @@ const Home: NextPage = () => {
   useLoadContracts()
 
   const contractStore = useSelector((state: RootState) => state.contract)
-
-  const [posts, setPosts] = useState([])
+  const postsCommentsStore = useSelector(
+    (state: RootState) => state.postsComments
+  )
+  const dispatch = useDispatch()
 
   useEffect(() => {
     async function fetchPosts() {
       const communityContract = contractStore?.community
-      if (!communityContract || posts?.length > 0) {
+      if (!communityContract || postsCommentsStore.isPostsLoaded) {
         return
       }
 
-      const posts = await communityContract.fetchPosts()
-      setPosts(posts)
+      const posts = await communityContract?.fetchPosts()
+      if (posts) {
+        dispatch(setPosts(posts))
+      }
     }
+
     fetchPosts()
-  }, [contractStore?.community, posts])
+  }, [contractStore?.community, postsCommentsStore.posts, dispatch])
 
   return (
     <div>
@@ -41,7 +48,11 @@ const Home: NextPage = () => {
 
       {isMounted && <Header />}
 
-      {posts.map((post: PostStruct, index) => {
+      <Button>
+        <Link href="/create-post"> Create Post</Link>
+      </Button>
+
+      {postsCommentsStore.posts.map((post: PostStruct, index) => {
         return (
           <Link href={`/post/${post.title}`} key={index}>
             <a>

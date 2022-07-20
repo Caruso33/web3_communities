@@ -1,3 +1,4 @@
+import PostCommentReducer from "./postComment"
 import { configureStore } from "@reduxjs/toolkit"
 import logger from "redux-logger"
 import ContractReducer from "./contract"
@@ -7,6 +8,7 @@ const middlewares = [logger]
 export const store = configureStore({
   reducer: {
     contract: ContractReducer,
+    postsComments: PostCommentReducer,
   },
   middleware: middlewares,
   devTools: true,

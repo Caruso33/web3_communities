@@ -8,9 +8,10 @@ import {
 } from "wagmi"
 import { InjectedConnector } from "wagmi/connectors/injected"
 import { alchemyProvider } from "wagmi/providers/alchemy"
-// import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
+// import { jsonRpcProvider } from "wagmi/providers/jsonRpc"
 import { MetaMaskConnector } from "wagmi/connectors/metaMask"
 import { publicProvider } from "wagmi/providers/public"
+// import { JsonRpcProvider } from "@ethersproject/providers"
 
 const { chains, provider, webSocketProvider } = configureChains(
   [

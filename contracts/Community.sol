@@ -20,6 +20,7 @@ contract Community is Ownable {
     struct Comment {
         address author;
         uint256 id;
+        uint256 postId;
         string content;
         uint256 createdAt;
         uint256 lastUpdatedAt;
@@ -178,6 +179,7 @@ contract Community is Ownable {
 
         comment.author = msg.sender;
         comment.id = comments.length;
+        comment.postId = postId;
         comment.content = hash;
         comment.createdAt = block.timestamp;
         comment.lastUpdatedAt = block.timestamp;
