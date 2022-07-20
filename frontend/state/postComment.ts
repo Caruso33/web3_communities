@@ -18,6 +18,15 @@ export const PostCommentSlice = createSlice({
   name: "PostsCommentsCategories",
   initialState,
   reducers: {
+    setIsPostsLoaded: (state, action: PayloadAction<boolean>) => {
+      state.isPostsLoaded = action.payload
+    },
+    setIsCategoriesLoaded: (state, action: PayloadAction<boolean>) => {
+      state.isCategoriesLoaded = action.payload
+    },
+    setIsCommentsLoaded: (state, action: PayloadAction<boolean>) => {
+      state.isCommentsLoaded = action.payload
+    },
     setCategories: (state, action: PayloadAction<string[]>) => {
       state.isCategoriesLoaded = true
       state.categories = action.payload
@@ -33,7 +42,14 @@ export const PostCommentSlice = createSlice({
   },
 })
 
-export const { setCategories, setPosts, setComments } = PostCommentSlice.actions
+export const {
+  setIsPostsLoaded,
+  setIsCategoriesLoaded,
+  setIsCommentsLoaded,
+  setCategories,
+  setPosts,
+  setComments,
+} = PostCommentSlice.actions
 
 export default PostCommentSlice.reducer
 

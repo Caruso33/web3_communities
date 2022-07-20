@@ -1,6 +1,6 @@
 import dynamic from "next/dynamic"
 import { useRouter } from "next/router"
-import { useEffect, useRef, useState } from "react" // new
+import { ChangeEvent, useEffect, useRef, useState } from "react"; // new
 // import deployment from "../utils/deployment.json"
 import {
   Box,
@@ -9,9 +9,10 @@ import {
   FormErrorMessage,
   FormHelperText,
   FormLabel,
+  Heading,
   Input,
   Select,
-  Spinner,
+  Spinner
 } from "@chakra-ui/react"
 import "easymde/dist/easymde.min.css"
 import Image from "next/image"
@@ -19,7 +20,7 @@ import { useDispatch, useSelector } from "react-redux"
 import Header from "../components/Header"
 import { useIsMounted } from "../hooks"
 import useLoadContracts from "../hooks/useLoadContract"
-import { setCategories } from "../state/postComment"
+import { setCategories, setIsPostsLoaded } from "../state/postComment"
 import { RootState } from "../state/store"
 import getWeb3StorageClient from "../utils/web3Storage"
 const web3StorageClient = getWeb3StorageClient()
@@ -32,7 +33,6 @@ const SimpleMDE = dynamic(() => import("react-simplemde-editor"), {
 const initialState = {
   title: "",
   content: "",
-  categoryIndex: "",
   coverImage: "",
 }
 
@@ -50,17 +50,11 @@ function CreatePost() {
 
   /* configure initial state to be used in the component */
   const [post, setPost] = useState(initialState)
-  const [postError, setPostError] = useState({
-    title: false,
-    content: false,
-    categoryIndex: false,
-    coverImage: false,
-  })
+  const [postError, setPostError] = useState({ title: false, content: false })
   const [image, setImage] = useState(null)
 
-  const [selectedCategory, setSelectedCategory] = useState(null)
+  const [selectedCategory, setSelectedCategory] = useState<number>(null)
 
-  const [initLoaded, setInitLoaded] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
   const fileRef = useRef(null)
@@ -83,20 +77,20 @@ function CreatePost() {
     fetchCategories()
   }, [contractStore, postsCommentsStore.isCategoriesLoaded, dispatch])
 
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     /* delay rendering buttons until dynamic import is complete */
-  //     setInitLoaded(true)
-  //   }, 500)
-  // }, [])
-
   function onChange(e) {
     setPost(() => ({ ...post, [e.target.name]: e.target.value }))
   }
 
   async function createNewPost() {
     /* saves post to ipfs then anchors to smart contract */
-    if (!title || !content) return
+    if (!title || !content) {
+      setPostError({
+        ...postError,
+        title: !title,
+        content: !content,
+      })
+      return
+    }
 
     try {
       setIsLoading(true)
@@ -123,7 +117,9 @@ function CreatePost() {
 
       const uploadedCID = await web3StorageClient.put([postFile])
 
-      console.log("Uploaded post to ipfs, CID: ", uploadedCID)
+      console.log("Uploading post to ipfs...")
+      console.log("Data: ", JSON.stringify(post, null, 4))
+      console.log("Post CID: ", uploadedCID)
 
       return uploadedCID
     } catch (err) {
@@ -131,7 +127,7 @@ function CreatePost() {
     }
   }
 
-  async function savePost(cid: string) {
+  function savePost(cid: string) {
     const communityContract = contractStore?.community
     if (!communityContract) {
       throw new Error(
@@ -139,12 +135,23 @@ function CreatePost() {
       )
     }
 
-    try {
-      const tx = communityContract.createPost(post.title, cid)
-      await tx.wait()
-    } catch (err) {
-      console.log("Error: ", err)
-    }
+    return new Promise(async (resolve, reject) => {
+      try {
+        const categoryIndex = selectedCategory ?? 0
+        const tx = await communityContract.createPost(
+          post.title,
+          cid,
+          categoryIndex
+        )
+        await tx.wait()
+
+        dispatch(setIsPostsLoaded(false))
+        resolve(tx)
+      } catch (err) {
+        console.log("Error: ", err)
+        reject(err)
+      }
+    })
   }
 
   function triggerOnChange() {
@@ -157,20 +164,30 @@ function CreatePost() {
     const uploadedFile = e.target.files[0]
     if (!uploadedFile) return
 
-    const uploadedCID = await web3StorageClient.put([uploadedFile])
-    console.log("Uploaded image to ipfs, CID: ", uploadedCID)
+    try {
+      setIsLoading(true)
 
-    setPost((state) => ({ ...state, coverImage: uploadedCID }))
-    setImage(uploadedFile)
+      const uploadedCID = await web3StorageClient.put([uploadedFile])
+      console.log("Uploaded image to ipfs, CID: ", uploadedCID)
+
+      setPost((state) => ({ ...state, coverImage: uploadedCID }))
+      setImage(uploadedFile)
+    } catch (err) {
+      console.log("Error: ", err)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
     <Box>
       {isMounted && <Header />}
 
-      {image && <Image src={URL.createObjectURL(image)} alt="Cover image" />}
-
       <Box m="5">
+        <Heading as="h1" noOfLines={1}>
+          Create Post
+        </Heading>
+
         <FormControl
           variant="floating"
           id="title"
@@ -213,7 +230,11 @@ function CreatePost() {
           my={5}
         >
           <FormLabel>Category</FormLabel>
-          <Select placeholder="Select Category">
+          <Select
+            placeholder="Select Category"
+            value={selectedCategory}
+            onChange={(e: ChangeEvent) => setSelectedCategory(e.target.value)}
+          >
             {postsCommentsStore.categories.map((category: string, index) => (
               <option key={index} value={index}>
                 {category}
@@ -223,22 +244,35 @@ function CreatePost() {
           <FormErrorMessage>Please select a category</FormErrorMessage>
         </FormControl>
 
-        <Button onClick={triggerOnChange}>
-          {isLoading ? <Spinner /> : "Add cover image"}
-        </Button>
+        {image && (
+          <Image
+            src={URL.createObjectURL(image)}
+            alt="Cover image"
+            width="100%"
+            height="100%"
+            objectFit="contain"
+            crossOrigin="anonymous"
+            unoptimized={true}
+          />
+        )}
 
-        <Input
-          id="selectImage"
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          ref={fileRef}
-          style={{ display: "none" }}
-        />
+        <Box my={5}>
+          <Input
+            id="selectImage"
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            ref={fileRef}
+            style={{ display: "none" }}
+          />
+          <Button onClick={triggerOnChange}>
+            {isLoading ? <Spinner /> : "Add cover image"}
+          </Button>
 
-        <Button onClick={createNewPost}>
-          {isLoading ? <Spinner /> : "Publish"}
-        </Button>
+          <Button ml={5} onClick={createNewPost}>
+            {isLoading ? <Spinner /> : "Publish"}
+          </Button>
+        </Box>
       </Box>
     </Box>
   )
