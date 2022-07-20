@@ -1,9 +1,8 @@
 import { MoonIcon, SunIcon } from "@chakra-ui/icons"
-import { Box, Button, useColorMode } from "@chakra-ui/react"
+import { Text, Box, Button, useColorMode } from "@chakra-ui/react"
 import Image from "next/image"
 import { useAccount, useConnect, useDisconnect, useNetwork } from "wagmi"
 import { InjectedConnector } from "wagmi/connectors/injected"
-// import logo from "../images/logo.png"
 import deployment from "../utils/deployment.json"
 
 function Header() {
@@ -20,7 +19,11 @@ function Header() {
   let content: JSX.Element
 
   if (!isConnected)
-    content = <button onClick={() => connect()}>Connect Wallet</button>
+    content = (
+      <Box border="1px" borderColor="gray.200" px={5} py={2}>
+        <Button onClick={() => connect()}>Connect Wallet</Button>
+      </Box>
+    )
   else {
     content = (
       <Box
@@ -33,14 +36,25 @@ function Header() {
         py={2}
       >
         <Box display="flex" alignItems="center" justifyContent="space-between">
-          <span>Connected to {address}</span>{" "}
-          <span>on network {chain?.name}</span>
+          <Image
+            src="/logo-small-transparent.png"
+            alt="Web3 Community Builder"
+            // 1080 × 446
+            width="146"
+            height="60"
+          />
+
+          <Box ml={5}>
+            <Text noOfLines={1}>Connected to {address}</Text>{" "}
+            <Text>on network {chain?.name}</Text>
+          </Box>
+
           <Button ml={2} onClick={() => disconnect()}>
             Disconnect
           </Button>
         </Box>
 
-        <Box>
+        <Box ml={5}>
           <Button onClick={toggleColorMode}>
             {colorMode === "light" ? <MoonIcon /> : <SunIcon />}
           </Button>
@@ -59,13 +73,6 @@ function Header() {
 
       return (
         <Box>
-          <Image
-            src="../images/logo.png"
-            alt="Web3 Community Builder"
-            width="60"
-            height="60"
-          />
-
           {content}
 
           <Box>
