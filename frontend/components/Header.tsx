@@ -1,7 +1,9 @@
 import { MoonIcon, SunIcon } from "@chakra-ui/icons"
 import { Box, Button, useColorMode } from "@chakra-ui/react"
+import Image from "next/image"
 import { useAccount, useConnect, useDisconnect, useNetwork } from "wagmi"
 import { InjectedConnector } from "wagmi/connectors/injected"
+// import logo from "../images/logo.png"
 import deployment from "../utils/deployment.json"
 
 function Header() {
@@ -56,13 +58,21 @@ function Header() {
         .map((chain) => chain.name)
 
       return (
-        <>
+        <Box>
+          <Image
+            src="../images/logo.png"
+            alt="Web3 Community Builder"
+            width="60"
+            height="60"
+          />
+
           {content}
+
           <Box>
             Please connect to one of the chain(s):{" "}
             {deployedChainNames.join(", ")}
           </Box>
-        </>
+        </Box>
       )
     }
   }
