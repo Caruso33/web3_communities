@@ -37,7 +37,7 @@ contract Community is Ownable {
         uint256 lastUpdatedAt;
     }
 
-    string[] private categories;
+    string[] private categories = ["*"];
 
     mapping(uint256 => Post) private idToPost;
     mapping(string => Post) private hashToPost;

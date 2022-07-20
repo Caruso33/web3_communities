@@ -1,20 +1,33 @@
-// import dynamic from "next/dynamic"
+import dynamic from "next/dynamic"
 import { useRouter } from "next/router"
 import { useEffect, useRef, useState } from "react" // new
 // import deployment from "../utils/deployment.json"
-import { Button, Input, Select, Spinner } from "@chakra-ui/react"
+import {
+  Box,
+  Button,
+  FormControl,
+  FormErrorMessage,
+  FormHelperText,
+  FormLabel,
+  Input,
+  Select,
+  Spinner,
+} from "@chakra-ui/react"
+import "easymde/dist/easymde.min.css"
+import Image from "next/image"
 import { useDispatch, useSelector } from "react-redux"
+import Header from "../components/Header"
+import { useIsMounted } from "../hooks"
 import useLoadContracts from "../hooks/useLoadContract"
 import { setCategories } from "../state/postComment"
 import { RootState } from "../state/store"
 import getWeb3StorageClient from "../utils/web3Storage"
-
 const web3StorageClient = getWeb3StorageClient()
 
 /* configure the markdown editor to be client-side import */
-// const SimpleMDE = dynamic(() => import("react-simplemde-editor"), {
-//   ssr: false,
-// })
+const SimpleMDE = dynamic(() => import("react-simplemde-editor"), {
+  ssr: false,
+})
 
 const initialState = {
   title: "",
@@ -24,6 +37,8 @@ const initialState = {
 }
 
 function CreatePost() {
+  const isMounted = useIsMounted()
+
   useLoadContracts()
 
   const contractStore = useSelector((state: RootState) => state.contract)
@@ -35,6 +50,12 @@ function CreatePost() {
 
   /* configure initial state to be used in the component */
   const [post, setPost] = useState(initialState)
+  const [postError, setPostError] = useState({
+    title: false,
+    content: false,
+    categoryIndex: false,
+    coverImage: false,
+  })
   const [image, setImage] = useState(null)
 
   const [selectedCategory, setSelectedCategory] = useState(null)
@@ -144,48 +165,82 @@ function CreatePost() {
   }
 
   return (
-    <div>
-      {image && <img src={URL.createObjectURL(image)} />}
+    <Box>
+      {isMounted && <Header />}
 
-      <Input
-        onChange={onChange}
-        name="title"
-        placeholder="Give it a title ..."
-        value={post.title}
-      />
+      {image && <Image src={URL.createObjectURL(image)} alt="Cover image" />}
 
-      {/* <SimpleMDE
-        placeholder="What's on your mind?"
-        value={post.content}
-        onChange={(value) => setPost({ ...post, content: value })}
-      /> */}
+      <Box m="5">
+        <FormControl
+          variant="floating"
+          id="title"
+          isRequired
+          isInvalid={postError.title}
+          my={5}
+        >
+          <FormLabel>Title</FormLabel>
+          <Input
+            onChange={onChange}
+            name="title"
+            placeholder="Give it a title ..."
+            value={post.title}
+            _placeholder={{ color: "inherit" }}
+          />
+          <FormHelperText>Keep it short and sweet!</FormHelperText>
+          <FormErrorMessage>Please enter a title</FormErrorMessage>
+        </FormControl>
 
-      <Select placeholder="Select Category">
-        {postsCommentsStore.categories.map((category: string, index) => (
-          <option key={index} value={index}>
-            {category}
-          </option>
-        ))}
-      </Select>
+        <FormControl
+          variant="floating"
+          id="content"
+          isRequired
+          isInvalid={postError.content}
+          my={5}
+        >
+          <FormLabel>Content</FormLabel>
+          <SimpleMDE
+            placeholder="What's on your mind?"
+            value={post.content}
+            onChange={(value) => setPost({ ...post, content: value })}
+          />
+          <FormErrorMessage>Please fill content</FormErrorMessage>
+        </FormControl>
 
-      {initLoaded && (
-        <>
-          <Button onClick={createNewPost}>
-            {isLoading ? <Spinner /> : "Publish"}
-          </Button>
-          <Button onClick={triggerOnChange}>
-            {isLoading ? <Spinner /> : "Add cover image"}
-          </Button>
-        </>
-      )}
-      <Input
-        id="selectImage"
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        ref={fileRef}
-      />
-    </div>
+        <FormControl
+          variant="floating"
+          id="categoryIndex"
+          isInvalid={postError.categoryIndex}
+          my={5}
+        >
+          <FormLabel>Category</FormLabel>
+          <Select placeholder="Select Category">
+            {postsCommentsStore.categories.map((category: string, index) => (
+              <option key={index} value={index}>
+                {category}
+              </option>
+            ))}
+          </Select>
+          <FormErrorMessage>Please select a category</FormErrorMessage>
+        </FormControl>
+
+        <Button onClick={triggerOnChange}>
+          {isLoading ? <Spinner /> : "Add cover image"}
+        </Button>
+
+        <Input
+          id="selectImage"
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          ref={fileRef}
+          style={{ display: "none" }}
+        />
+
+        <Button onClick={createNewPost}>
+          {isLoading ? <Spinner /> : "Publish"}
+        </Button>
+      </Box>
+    </Box>
   )
 }
 

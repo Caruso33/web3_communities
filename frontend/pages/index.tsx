@@ -36,7 +36,12 @@ const Home: NextPage = () => {
     }
 
     fetchPosts()
-  }, [contractStore?.community, postsCommentsStore.posts, dispatch])
+  }, [
+    contractStore?.community,
+    postsCommentsStore.isPostsLoaded,
+    postsCommentsStore.posts,
+    dispatch,
+  ])
 
   return (
     <div>

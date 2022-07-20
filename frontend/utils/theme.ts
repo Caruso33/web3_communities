@@ -1,26 +1,26 @@
-import { extendTheme } from "@chakra-ui/react"
+import { extendTheme, ThemeConfig } from "@chakra-ui/react"
 
-const customTheme = extendTheme({
-  semanticTokens: {
-    colors: {
-      error: "red.500",
-      success: "green.500",
-      primary: {
-        default: "red.500",
-        _dark: "red.400",
-      },
-      secondary: {
-        default: "red.800",
-        _dark: "red.700",
-      },
-    },
-  },
-})
-
-const initialTheme = {
-  config: {
-    initialColorMode: "light" //| ("dark" as "dark") | "system",
-  },
+const config: ThemeConfig = {
+  useSystemColorMode: true,
+  initialColorMode: "system",
 }
 
-export { initialTheme, customTheme }
+const theme = extendTheme({
+  config,
+  // semanticTokens: {
+  //   colors: {
+  //     error: "red.500",
+  //     success: "green.500",
+  //     primary: {
+  //       default: "red.500",
+  //       _dark: "red.400",
+  //     },
+  //     secondary: {
+  //       default: "red.800",
+  //       _dark: "red.700",
+  //     },
+  //   },
+  // },
+})
+
+export { theme }

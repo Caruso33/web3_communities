@@ -1,8 +1,12 @@
+import { MoonIcon, SunIcon } from "@chakra-ui/icons"
+import { Box, Button, useColorMode } from "@chakra-ui/react"
 import { useAccount, useConnect, useDisconnect, useNetwork } from "wagmi"
 import { InjectedConnector } from "wagmi/connectors/injected"
 import deployment from "../utils/deployment.json"
 
 function Header() {
+  const { colorMode, toggleColorMode } = useColorMode()
+
   const { address, isConnected } = useAccount()
   const { chain, chains } = useNetwork()
 
@@ -17,19 +21,29 @@ function Header() {
     content = <button onClick={() => connect()}>Connect Wallet</button>
   else {
     content = (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-        }}
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        border="1px"
+        borderColor="gray.200"
+        px={5}
+        py={2}
       >
-        <div>
+        <Box display="flex" alignItems="center" justifyContent="space-between">
           <span>Connected to {address}</span>{" "}
           <span>on network {chain?.name}</span>
-        </div>
+          <Button ml={2} onClick={() => disconnect()}>
+            Disconnect
+          </Button>
+        </Box>
 
-        <button onClick={() => disconnect()}>Disconnect</button>
-      </div>
+        <Box>
+          <Button onClick={toggleColorMode}>
+            {colorMode === "light" ? <MoonIcon /> : <SunIcon />}
+          </Button>
+        </Box>
+      </Box>
     )
 
     const deployedChainIds = Object.keys(deployment)
@@ -44,9 +58,10 @@ function Header() {
       return (
         <>
           {content}
-          <div>
-            Please connect to one of the chain(s): {deployedChainNames.join(", ")}
-          </div>
+          <Box>
+            Please connect to one of the chain(s):{" "}
+            {deployedChainNames.join(", ")}
+          </Box>
         </>
       )
     }

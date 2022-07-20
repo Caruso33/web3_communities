@@ -46,28 +46,34 @@ describe("Community", async () => {
   describe("Category", function () {
     it("Should create category", async () => {
       let categories = await community.fetchCategories()
-      assert.equal(categories.length, 0)
+
+      assert.equal(categories[0], "*")
+      assert.equal(categories.length, 1)
 
       await community.createCategory("Category 1")
 
       categories = await community.fetchCategories()
-      expect(categories[0]).to.equal("Category 1")
-      assert.equal(categories.length, 1)
+      expect(categories[1]).to.equal("Category 1")
+      assert.equal(categories.length, 2)
 
       await community.createCategory("Category 2")
 
       categories = await community.fetchCategories()
-      expect((await community.fetchCategories())[1]).to.equal("Category 2")
-      assert.equal(categories.length, 2)
+      expect((await community.fetchCategories())[2]).to.equal("Category 2")
+      assert.equal(categories.length, 3)
     })
 
     it("Should revert when creating duplicate category", async () => {
       let categories = await community.fetchCategories()
-      assert.equal(categories.length, 0)
+      assert.equal(categories.length, 1)
 
       await community.createCategory("Category 1")
       await community.createCategory("Category 2")
 
+      await expect(community.createCategory("*")).to.be.revertedWithCustomError(
+        community,
+        "Community__DuplicateCategory"
+      )
       await expect(
         community.createCategory("Category 2")
       ).to.be.revertedWithCustomError(community, "Community__DuplicateCategory")
