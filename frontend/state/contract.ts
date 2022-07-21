@@ -3,47 +3,33 @@ import { createSlice } from "@reduxjs/toolkit"
 import { Contract } from "ethers"
 
 export interface ContractState {
-  isCommunityProviderLoaded: boolean
-  isCommunitySignerLoaded: boolean
+  isCommunityLoaded: boolean
 
-  communityProvider: Contract | null
-  communitySigner: Contract | null
+  community: Contract | null
 }
 
 const initialState: ContractState = {
-  isCommunityProviderLoaded: false,
-  isCommunitySignerLoaded: false,
+  isCommunityLoaded: false,
 
-  communityProvider: null,
-  communitySigner: null,
+  community: null,
 }
 
 export const ContractSlice = createSlice({
   name: "Contract",
   initialState,
   reducers: {
-    setCommunityProvider: (state, action: PayloadAction<Contract>) => {
+    setCommunity: (state, action: PayloadAction<Contract>) => {
       // Redux Toolkit allows us to write "mutating" logic in reducers. It
       // doesn't actually mutate the state because it uses the Immer library,
       // which detects changes to a "draft state" and produces a brand new
       // immutable state based off those changes
-      state.isCommunityProviderLoaded = true
-      state.communityProvider = action.payload
-    },
-
-    setCommunitySigner: (state, action: PayloadAction<Contract>) => {
-      // Redux Toolkit allows us to write "mutating" logic in reducers. It
-      // doesn't actually mutate the state because it uses the Immer library,
-      // which detects changes to a "draft state" and produces a brand new
-      // immutable state based off those changes
-      state.isCommunitySignerLoaded = true
-      state.communitySigner = action.payload
+      state.isCommunityLoaded = true
+      state.community = action.payload
     },
   },
 })
 
 // Action creators are generated for each case reducer function
-export const { setCommunityProvider, setCommunitySigner } =
-  ContractSlice.actions
+export const { setCommunity } = ContractSlice.actions
 
 export default ContractSlice.reducer

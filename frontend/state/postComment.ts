@@ -7,10 +7,15 @@ import type {
 
 const initialState: PostState = {
   isCategoriesLoaded: false,
-  isPostsLoaded: false,
-  isCommentsLoaded: false,
   categories: [],
+
+  isPostsLoaded: false,
   posts: [],
+
+  isPostLoaded: false,
+  post: {},
+
+  isCommentsLoaded: false,
   comments: {},
 }
 
@@ -21,22 +26,32 @@ export const PostCommentSlice = createSlice({
     setIsPostsLoaded: (state, action: PayloadAction<boolean>) => {
       state.isPostsLoaded = action.payload
     },
+
     setIsCategoriesLoaded: (state, action: PayloadAction<boolean>) => {
       state.isCategoriesLoaded = action.payload
     },
+
     setIsCommentsLoaded: (state, action: PayloadAction<boolean>) => {
       state.isCommentsLoaded = action.payload
     },
+
     setCategories: (state, action: PayloadAction<string[]>) => {
-      state.isCategoriesLoaded = true
+      state.isCategoriesLoaded = !!action.payload
       state.categories = action.payload
     },
+
     setPosts: (state, action: PayloadAction<PostStruct[]>) => {
-      state.isPostsLoaded = true
+      state.isPostsLoaded = !!action.payload
       state.posts = action.payload
     },
+
+    setPost: (state, action: PayloadAction<PostStruct>) => {
+      state.isPostLoaded = !!action.payload
+      state.post = action.payload
+    },
+
     setComments: (state, action: PayloadAction<CommentStruct>) => {
-      state.isCommentsLoaded = true
+      state.isCommentsLoaded = !!action.payload
       state.comments = { ...state.comments, postId: action.payload }
     },
   },
@@ -48,6 +63,7 @@ export const {
   setIsCommentsLoaded,
   setCategories,
   setPosts,
+  setPost,
   setComments,
 } = PostCommentSlice.actions
 
@@ -55,9 +71,14 @@ export default PostCommentSlice.reducer
 
 export interface PostState {
   isCategoriesLoaded: boolean
-  isPostsLoaded: boolean
-  isCommentsLoaded: boolean
   categories: string[]
+
+  isPostsLoaded: boolean
   posts: PostStruct[]
+
+  isPostLoaded: boolean
+  post: PostStruct
+
+  isCommentsLoaded: boolean
   comments: Record<string, CommentStruct[]>
 }

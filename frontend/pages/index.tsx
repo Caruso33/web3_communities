@@ -1,12 +1,10 @@
 import { ChevronRightIcon } from "@chakra-ui/icons"
-import { Box, Button, Heading, Spinner, Stack, Text } from "@chakra-ui/react"
+import { Box, Heading, HStack, Spinner, Stack, Text } from "@chakra-ui/react"
 import type { NextPage } from "next"
-import Head from "next/head"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import type { PostStruct } from "../../typechain-types/contracts/Community"
-import { useIsMounted } from "../hooks"
 import useLoadContracts from "../hooks/useLoadContract"
 import { setPosts } from "../state/postComment"
 import { RootState } from "../state/store"
@@ -24,7 +22,7 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     async function fetchPosts() {
-      const communityContract = contractStore?.communityProvider
+      const communityContract = contractStore?.community
       if (!communityContract || postsCommentsStore.isPostsLoaded) {
         return
       }
@@ -45,7 +43,7 @@ const Home: NextPage = () => {
 
     fetchPosts()
   }, [
-    contractStore?.communityProvider,
+    contractStore?.community,
     postsCommentsStore.isPostsLoaded,
     postsCommentsStore.posts,
     dispatch,
@@ -54,31 +52,29 @@ const Home: NextPage = () => {
   return (
     <Box>
       <Box m={5} overflow="auto">
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Heading as="h1" noOfLines={1}>
-            Home
-          </Heading>
+        <Heading as="h1" noOfLines={1}>
+          Home
+        </Heading>
 
-          <Button>
-            <Link href="/create-post"> Create Post</Link>
-          </Button>
-        </Box>
-
-        <Stack mt={5} spacing={8}>
+        <Stack mt={5} pb={5} spacing={8} direction="column" alignItems="center">
           {isLoading ? (
             <Spinner />
           ) : (
             postsCommentsStore.posts.map((post: PostStruct, index) => {
               return (
                 <Box
+                  key={`${post.title}_${index}`}
                   display="flex"
                   p={5}
                   shadow="md"
                   borderWidth="1px"
                   w="60vw"
-                  key={`${post.title}_${index}`}
+                  _hover={{
+                    shadow: "xl",
+                    borderWidth: "2px",
+                  }}
                 >
-                  <Link href={`/post/${post.id}`}>
+                  <Link href={`/post/${post.content}`}>
                     <Box w="100%" style={{ cursor: "pointer" }}>
                       <ChevronRightIcon
                         boxSize={50}
@@ -86,15 +82,18 @@ const Home: NextPage = () => {
                       />
 
                       <Heading fontSize="xl">{post.title}</Heading>
-                      <Text>by {post.author}</Text>
+                      <Text noOfLines={1}>by {post.author}</Text>
 
-                      <Text noOfLines={3}>Content: {post.content}</Text>
+                      <Text noOfLines={3}>Content at: {post.content}</Text>
                     </Box>
                   </Link>
                 </Box>
               )
             })
           )}
+
+          {postsCommentsStore.isPostsLoaded &&
+            postsCommentsStore.posts.length === 0 && <Text>No posts yet</Text>}
         </Stack>
       </Box>
     </Box>

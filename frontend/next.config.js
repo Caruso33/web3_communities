@@ -3,8 +3,12 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   images: {
-    domains: ["https://i.stack.imgur.com"]
-  }
+    domains: [
+      "https://ipfs.dweb.link",
+      "https://ipfs.io",
+      "https://ipfs.infura.io/ipfs/",
+    ],
+  },
 }
 
 module.exports = nextConfig

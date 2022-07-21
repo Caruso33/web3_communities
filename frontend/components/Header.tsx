@@ -1,9 +1,10 @@
 import { MoonIcon, SunIcon } from "@chakra-ui/icons"
-import { Text, Box, Button, useColorMode } from "@chakra-ui/react"
+import { Box, Button, Text, useColorMode } from "@chakra-ui/react"
 import Image from "next/image"
 import { useAccount, useConnect, useDisconnect, useNetwork } from "wagmi"
 import { InjectedConnector } from "wagmi/connectors/injected"
 import deployment from "../utils/deployment.json"
+import Navbar from "./Navbar"
 
 function Header() {
   const { colorMode, toggleColorMode } = useColorMode()
@@ -42,44 +43,51 @@ function Header() {
     )
   else {
     content = (
-      <Box
-        display="flex"
-        alignItems="center"
-        justifyContent="space-between"
-        border="1px"
-        borderColor="gray.200"
-        px={5}
-        py={2}
-      >
-        <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Image
-            src="/logo-small-transparent.png"
-            alt="Web3 Community Builder"
-            // 1080 × 446
-            width="146"
-            height="60"
-          />
+      <>
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          border="1px"
+          borderColor="gray.200"
+          px={5}
+          py={2}
+        >
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <Box minW="100">
+              <Image
+                src="/logo-small-transparent.png"
+                alt="Web3 Community Builder"
+                // 1080 × 446
+                width="146"
+                height="60"
+              />
+            </Box>
+
+            <Box ml={5}>
+              <Text noOfLines={1} >
+                Connected to {address}
+              </Text>{" "}
+              <Text noOfLines={1} >on network {chain?.name}</Text>
+            </Box>
+          </Box>
 
           <Box ml={5}>
-            <Text noOfLines={1}>
-              Connected to <pre style={{ display: "inline" }}>{address}</pre>
-            </Text>{" "}
-            <Text>
-              on network <pre style={{ display: "inline" }}>{chain?.name}</pre>
-            </Text>
+            <Button ml={2} onClick={() => disconnect()}>
+              Disconnect
+            </Button>
+
+            <Button ml={2} onClick={toggleColorMode}>
+              {colorMode === "light" ? <MoonIcon /> : <SunIcon />}
+            </Button>
           </Box>
         </Box>
-
-        <Box ml={5}>
-          <Button ml={2} onClick={() => disconnect()}>
-            Disconnect
-          </Button>
-
-          <Button ml={2} onClick={toggleColorMode}>
-            {colorMode === "light" ? <MoonIcon /> : <SunIcon />}
-          </Button>
-        </Box>
-      </Box>
+        <Navbar />
+      </>
     )
 
     const deployedChainIds = Object.keys(deployment)
