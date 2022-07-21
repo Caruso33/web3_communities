@@ -19,14 +19,13 @@ import { useAccount, useSigner } from "wagmi"
 import type {
   CommentStructOutput,
   Community,
-  PostStructOutput,
 } from "../../../typechain-types/contracts/Community"
+import useFetchPostByHash from "../../hooks/useFetchPostByHash"
 import useLoadContracts from "../../hooks/useLoadContract"
 import {
   setComments,
   setIsCommentsLoaded,
   setIsCommentsLoading,
-  setIsPostLoading,
   setPost,
 } from "../../state/postComment"
 import { RootState } from "../../state/store"
@@ -65,35 +64,7 @@ export default function Post() {
   const [comment, setComment] = useState("")
   const [commentError, setCommentError] = useState(false)
 
-  useEffect(() => {
-    async function fetchPost(hash) {
-      const communityContract = contractStore?.community as Community
-      if (!communityContract || postsCommentsStore.isPostLoaded) {
-        return
-      }
-
-      try {
-        dispatch(setIsPostLoading(true))
-        const post: PostStructOutput = await communityContract?.fetchPostByHash(
-          hash
-        )
-        if (post) {
-          dispatch(setPost(post))
-        }
-      } catch (error) {
-        console.error(error)
-      } finally {
-        dispatch(setIsPostLoading(false))
-      }
-    }
-
-    fetchPost(hash)
-  }, [
-    contractStore?.community,
-    hash,
-    postsCommentsStore.isPostLoaded,
-    dispatch,
-  ])
+  useFetchPostByHash(hash as string)
 
   useEffect(() => {
     async function fetchContent() {
