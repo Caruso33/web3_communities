@@ -1,6 +1,6 @@
-import { Box, Button, Heading, Spinner, Stack } from "@chakra-ui/react"
+import { Text, Box, Heading, Link, Spinner, Stack } from "@chakra-ui/react"
 import Image from "next/image"
-import Link from "next/link"
+import { default as NextLink } from "next/link"
 import { useRouter } from "next/router"
 import { useEffect, useLayoutEffect, useState } from "react"
 import ReactMarkdown from "react-markdown"
@@ -9,6 +9,7 @@ import { useAccount } from "wagmi"
 import type {
   Community,
   PostStructOutput,
+  CommentStructOutput,
 } from "../../../typechain-types/contracts/Community"
 import useLoadContracts from "../../hooks/useLoadContract"
 import {
@@ -39,9 +40,10 @@ export default function Post() {
   const dispatch = useDispatch()
 
   const [isContentLoading, setIsContentLoading] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [coverImage, setCoverImage] = useState(null)
   const [content, setContent] = useState("")
+
+  const [writeComment, setWriteComment] = useState(false)
 
   useEffect(() => {
     async function fetchPost(hash) {
@@ -168,64 +170,90 @@ export default function Post() {
     [dispatch]
   )
 
-  const editLink =
-    address &&
+  const EditLink = address &&
     postsCommentsStore.post &&
-    address === postsCommentsStore.post.author ? (
-      <Box>
-        <Button>
-          <Link href={`/edit-post/${hash}`}>
-            <a>Edit post</a>
-          </Link>
-        </Button>
+    address === postsCommentsStore.post.author && (
+      <Box alignSelf="flex-end" mr={5}>
+        <Link>
+          <NextLink href={`/edit-post/${hash}`}>Edit post</NextLink>
+        </Link>
       </Box>
-    ) : (
-      <div />
     )
 
+  const CoverImage = coverImage && (
+    <Box mb={5} h={300} w={300}>
+      <Image
+        src={coverImage}
+        alt="Cover image"
+        width="100%"
+        height="100%"
+        sizes="100%"
+        layout="responsive"
+        objectFit="cover"
+        crossOrigin="anonymous"
+        unoptimized={true}
+      />
+    </Box>
+  )
+
   return (
-    <Stack mt={5} pb={5} spacing={8} direction="column" alignItems="center">
+    <Stack mt={5} spacing={8} direction="column" alignItems="center">
       {postsCommentsStore.isPostLoading ? (
         <Spinner />
       ) : (
         postsCommentsStore.post && (
           <>
-            <CoverImage coverImage={coverImage} />
+            {EditLink}
 
-            <Heading textAlign="center" as="h1">
-              {postsCommentsStore.post.title}
-            </Heading>
+            {CoverImage}
 
-            {isContentLoading ? (
-              <Spinner />
-            ) : (
-              <Box>
-                <ReactMarkdown>{content}</ReactMarkdown>
-              </Box>
-            )}
+            <Box w="60vw">
+              <Heading textAlign="center" as="h1">
+                {postsCommentsStore.post.title}
+              </Heading>
+
+              {isContentLoading ? (
+                <Spinner />
+              ) : (
+                <Box alignSelf="flex-start" mb={50}>
+                  <ReactMarkdown>{content}</ReactMarkdown>
+                </Box>
+              )}
+
+              {postsCommentsStore.isCommentsLoading ? (
+                <Spinner />
+              ) : (
+                <Stack pb={5} spacing={3}>
+                  <Heading as="h2" mb={5}>
+                    Comments
+                  </Heading>
+
+                  {postsCommentsStore.comments.map(
+                    (comment: CommentStructOutput, index) => (
+                      <Box
+                        key={`${comment.id}_${index}`}
+                        w="100%"
+                        p={5}
+                        shadow="md"
+                        borderWidth="1px"
+                      >
+                        <Text noOfLines={1}>{comment.author}</Text>
+
+                        <ReactMarkdown>{comment.content}</ReactMarkdown>
+                      </Box>
+                    )
+                  )}
+                </Stack>
+              )}
+
+              {postsCommentsStore.isCommentsLoaded &&
+                postsCommentsStore.comments.length === 0 && (
+                  <Text>No comments yet</Text>
+                )}
+            </Box>
           </>
         )
       )}
     </Stack>
-  )
-}
-
-const CoverImage = ({ coverImage }) => {
-  return (
-    coverImage && (
-      <Box mb={5} h={300} w={300}>
-        <Image
-          src={coverImage}
-          alt="Cover image"
-          width="100%"
-          height="100%"
-          sizes="100%"
-          layout="responsive"
-          objectFit="cover"
-          crossOrigin="anonymous"
-          unoptimized={true}
-        />
-      </Box>
-    )
   )
 }

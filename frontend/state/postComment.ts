@@ -20,7 +20,7 @@ const initialState: PostState = {
 
   isCommentsLoading: false,
   isCommentsLoaded: false,
-  comments: {},
+  comments: [],
 }
 
 export const PostCommentSlice = createSlice({
@@ -68,7 +68,7 @@ export const PostCommentSlice = createSlice({
     },
     setComments: (state, action: PayloadAction<CommentStruct[]>) => {
       state.isCommentsLoading = false
-      state.comments = { ...state.comments, postId: action.payload }
+      state.comments = action.payload
     },
   },
 })
@@ -104,5 +104,5 @@ export interface PostState {
 
   isCommentsLoading: boolean
   isCommentsLoaded: boolean
-  comments: Record<string, CommentStruct[]>
+  comments: CommentStruct[]
 }

@@ -12,7 +12,8 @@
     "coverage": "yarn hardhat coverage",
     "node": "yarn hardhat node",
     "deploy": "yarn hardhat deploy",
-    "fetchCategories": "yarn hardhat fetchCategories --address DEPLOYED_ADDRESS --network localhost"
+    "fetchCategories": "yarn hardhat fetchCategories --address DEPLOYED_ADDRESS --network localhost",
+    "createComment": "yarn hardhat createComment --address DEPLOYED_ADDRESS --postid 1 --content 'To the mars 🚀' --network localhost"
   },
   "dependencies": {
     "hardhat": "^2.10.1"

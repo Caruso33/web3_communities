@@ -63,7 +63,7 @@ const Home: NextPage = () => {
             postsCommentsStore.posts.map((post: PostStruct, index) => {
               return (
                 <Box
-                  key={`${post.title}_${index}`}
+                  key={`${post.id}_${index}`}
                   display="flex"
                   p={5}
                   shadow="md"
