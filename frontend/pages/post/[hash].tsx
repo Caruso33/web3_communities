@@ -50,33 +50,6 @@ export default function Post() {
         if (post) {
           dispatch(setPost(post))
         }
-
-        let res = await web3StorageClient.get(post.content)
-        if (res?.ok) {
-          let files = await res.files()
-
-          const file = files[0]
-          const fileContent = JSON.parse(await getFileContent(file))
-
-          console.dir(fileContent)
-
-          if (fileContent.coverImage) {
-            // setCoverImage(`${IPFS_GATEWAY}${fileContent.coverImage}`)
-
-            res = await web3StorageClient.get(fileContent.coverImage)
-            if (res?.ok) {
-              files = await res.files()
-              const fileCoverImage = files[0]
-
-              const coverImage = await getFileContent(
-                fileCoverImage,
-                "readAsDataURL"
-              )
-
-              setCoverImage(coverImage)
-            }
-          }
-        }
       } catch (error) {
         console.error(error)
       } finally {
@@ -90,6 +63,46 @@ export default function Post() {
     hash,
     postsCommentsStore.isPostLoaded,
     dispatch,
+  ])
+
+  useEffect(() => {
+    async function fetchCoverImage() {
+      if (coverImage || !postsCommentsStore.isPostLoaded) {
+        return
+      }
+
+      let res = await web3StorageClient.get(postsCommentsStore.post.content)
+      if (res?.ok) {
+        let files = await res.files()
+
+        const file = files[0]
+        const fileContent = JSON.parse(await getFileContent(file))
+
+        if (fileContent.coverImage) {
+          // setCoverImage(`${IPFS_GATEWAY}${fileContent.coverImage}`)
+
+          res = await web3StorageClient.get(fileContent.coverImage)
+          if (res?.ok) {
+            files = await res.files()
+            const fileCoverImage = files[0]
+
+            const coverImage = await getFileContent(
+              fileCoverImage,
+              "readAsDataURL"
+            )
+
+            setCoverImage(coverImage)
+          }
+        }
+      }
+    }
+
+    fetchCoverImage()
+  }, [
+    postsCommentsStore.post,
+    postsCommentsStore.isPostLoaded,
+    coverImage,
+    setCoverImage,
   ])
 
   useLayoutEffect(
