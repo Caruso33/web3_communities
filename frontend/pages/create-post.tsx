@@ -95,46 +95,50 @@ function CreatePost() {
       return
     }
 
-    try {
-      setIsLoading(true)
-      const cid = await savePostToIpfs(
-        post,
-        `${new Date().toLocaleString()}_${selectedCategory}_${post.title}.json`
-      )
-      if (!cid) return
+    setPostError({ title: false, content: false })
 
-      await savePost(cid)
-      router.push(`/`)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  function savePost(contentCID: string) {
-    // const communityContract = contractStore?.communitySigner
     const communityContract = contractStore?.community as Community
-    if (!communityContract || !signer) {
+    if (!communityContract) {
       throw new Error(
         "No community contract found. Please make sure to be connected with Metamask."
       )
     }
 
-    return new Promise(async (resolve, reject) => {
-      try {
-        const categoryIndex = selectedCategory || 0
+    if (!signer) {
+      throw new Error(
+        "No signer found. Please make sure to be connected with Metamask."
+      )
+    }
 
-        const tx = await communityContract
-          ?.connect(signer)
-          ?.createPost(post.title, contentCID, categoryIndex)
-        await tx.wait()
+    try {
+      setIsLoading(true)
 
-        dispatch(setIsPostsLoaded(false))
-        resolve(tx)
-      } catch (err) {
-        console.log("Error: ", err)
-        reject(err)
+      const categoryIndex = selectedCategory || 0
+      const data = {
+        ...post,
+        author: await signer.getAddress(),
+        categoryIndex,
       }
-    })
+
+      // IPFS
+      const cid = (await savePostToIpfs(
+        data,
+        `${new Date().toLocaleString()}_${selectedCategory}_${post.title}.json`
+      )) as string
+      if (!cid) throw Error("Failed to save post to IPFS")
+
+      // Smart Contract
+      const tx = await communityContract
+        ?.connect(signer)
+        ?.createPost(post.title, cid, categoryIndex)
+      await tx.wait()
+
+      dispatch(setIsPostsLoaded(false))
+
+      router.push(`/`)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   function triggerOnChange() {

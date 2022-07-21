@@ -12,7 +12,7 @@ import dynamic from "next/dynamic"
 import Image from "next/image"
 import { default as NextLink } from "next/link"
 import { useRouter } from "next/router"
-import { useEffect, useLayoutEffect, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useState } from "react"
 import ReactMarkdown from "react-markdown"
 import { useDispatch, useSelector } from "react-redux"
 import { useAccount, useSigner } from "wagmi"
@@ -31,6 +31,7 @@ import {
 } from "../../state/postComment"
 import { RootState } from "../../state/store"
 import getFileContent from "../../utils/getFileContent"
+import savePostToIpfs from "../../utils/saveToIpfs"
 import getWeb3StorageClient from "../../utils/web3Storage"
 
 const web3StorageClient = getWeb3StorageClient()
@@ -44,6 +45,7 @@ export default function Post() {
   useLoadContracts()
 
   const { address } = useAccount()
+  const { data: signer } = useSigner()
 
   const router = useRouter()
   const { hash } = router.query
@@ -54,6 +56,7 @@ export default function Post() {
   )
   const dispatch = useDispatch()
 
+  const [isLoading, setIsLoading] = useState(false)
   const [isContentLoading, setIsContentLoading] = useState(false)
   const [coverImage, setCoverImage] = useState(null)
   const [content, setContent] = useState("")
@@ -61,8 +64,6 @@ export default function Post() {
   const [writeComment, setWriteComment] = useState(false)
   const [comment, setComment] = useState("")
   const [commentError, setCommentError] = useState(false)
-
-  const { data: signer } = useSigner()
 
   useEffect(() => {
     async function fetchPost(hash) {
@@ -144,34 +145,30 @@ export default function Post() {
     setCoverImage,
   ])
 
-  useEffect(() => {
-    async function fetchComments() {
-      const communityContract = contractStore?.community as Community
-      if (
-        !communityContract ||
-        !postsCommentsStore.isPostLoaded ||
-        postsCommentsStore.isCommentsLoaded
-      ) {
-        return
-      }
-
-      try {
-        dispatch(setIsCommentsLoading(true))
-        const comments = await communityContract?.fetchCommentsOfPost(
-          postsCommentsStore.post.id
-        )
-        if (comments) {
-          dispatch(setComments(comments))
-          dispatch(setIsCommentsLoaded(true))
-        }
-      } catch (error) {
-        console.error(error)
-      } finally {
-        dispatch(setIsCommentsLoading(false))
-      }
+  const fetchComments = useCallback(async () => {
+    const communityContract = contractStore?.community as Community
+    if (
+      !communityContract ||
+      !postsCommentsStore.isPostLoaded ||
+      postsCommentsStore.isCommentsLoaded
+    ) {
+      return
     }
 
-    fetchComments()
+    try {
+      dispatch(setIsCommentsLoading(true))
+      const comments = await communityContract?.fetchCommentsOfPost(
+        postsCommentsStore.post.id
+      )
+      if (comments) {
+        dispatch(setComments(comments))
+        dispatch(setIsCommentsLoaded(true))
+      }
+    } catch (error) {
+      console.error(error)
+    } finally {
+      dispatch(setIsCommentsLoading(false))
+    }
   }, [
     contractStore?.community,
     postsCommentsStore.isPostLoaded,
@@ -179,6 +176,10 @@ export default function Post() {
     postsCommentsStore.isCommentsLoaded,
     dispatch,
   ])
+
+  useEffect(() => {
+    fetchComments()
+  }, [fetchComments])
 
   useLayoutEffect(
     () => () => {
@@ -189,24 +190,64 @@ export default function Post() {
     [dispatch]
   )
 
-  function createComment() {
+  async function createComment() {
     const communityContract = contractStore?.community as Community
     if (!communityContract) {
-      return
+      throw new Error(
+        "No community contract found. Please make sure to be connected with Metamask."
+      )
+    }
+
+    if (!signer) {
+      throw new Error(
+        "No signer found. Please make sure to be connected with Metamask."
+      )
     }
 
     if (!comment) {
       setCommentError(true)
     }
+
     setCommentError(false)
 
-    // await savePostToIpfs()
+    try {
+      setIsLoading(true)
 
-    communityContract
-      .connect(signer)
-      .createComment(postsCommentsStore.post.id, comment)
+      const data = {
+        author: await signer.getAddress(),
+        postId: postsCommentsStore.post.id,
+        content: comment,
+      }
 
-    setComment("")
+      // IPFS
+      const cid = await savePostToIpfs(
+        data,
+        `${new Date().toLocaleString()}_${
+          postsCommentsStore.post.id
+        }_comment.json`
+      )
+      if (!cid) if (!cid) throw Error("Failed to save comment to IPFS")
+
+      // Smart Contract
+      const tx = await communityContract
+        .connect(signer)
+        .createComment(postsCommentsStore.post.id, comment)
+      await tx.wait()
+
+      // local state
+      setComment("")
+      setWriteComment(!writeComment)
+
+      // global state
+      dispatch(setIsCommentsLoaded(false))
+      dispatch(setComments([]))
+
+      fetchComments()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const EditLink = address &&
@@ -267,20 +308,37 @@ export default function Post() {
                 </Box>
               ) : (
                 <Stack pb={5} spacing={3}>
-                  <Button onClick={() => setWriteComment(!writeComment)}>
-                    Add Comment
-                  </Button>
+                  <Box mb={5}>
+                    <Button
+                      mb={5}
+                      onClick={() => setWriteComment(!writeComment)}
+                      isDisabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <Spinner />
+                      ) : (
+                        `${writeComment ? "Hide" : "Add"} Comment`
+                      )}
+                    </Button>
 
-                  {/* {writeComment && (
-                    <>
-                      <SimpleMDE
-                        placeholder="What's on your mind?"
-                        value={comment}
-                        onChange={setComment}
-                      />
-                      <Button alignSelf="flex-end" onClick={() => createComment()}>Create Comment</Button>
-                    </>
-                  )} */}
+                    {writeComment && (
+                      <>
+                        <SimpleMDE
+                          placeholder="What's on your mind?"
+                          value={comment}
+                          onChange={setComment}
+                        />
+
+                        <Button
+                          alignSelf="flex-end"
+                          onClick={() => createComment()}
+                          isDisabled={isLoading}
+                        >
+                          {isLoading ? <Spinner /> : "Create Comment"}
+                        </Button>
+                      </>
+                    )}
+                  </Box>
 
                   <Heading as="h2" mb={5}>
                     Comments
