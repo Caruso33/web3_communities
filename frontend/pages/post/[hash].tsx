@@ -11,7 +11,13 @@ import type {
   PostStructOutput,
 } from "../../../typechain-types/contracts/Community"
 import useLoadContracts from "../../hooks/useLoadContract"
-import { setPost } from "../../state/postComment"
+import {
+  setComments,
+  setIsCommentsLoaded,
+  setIsCommentsLoading,
+  setIsPostLoading,
+  setPost,
+} from "../../state/postComment"
 import { RootState } from "../../state/store"
 import getFileContent from "../../utils/getFileContent"
 import getWeb3StorageClient from "../../utils/web3Storage"
@@ -32,8 +38,10 @@ export default function Post() {
   )
   const dispatch = useDispatch()
 
+  const [isContentLoading, setIsContentLoading] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [coverImage, setCoverImage] = useState(null)
+  const [content, setContent] = useState("")
 
   useEffect(() => {
     async function fetchPost(hash) {
@@ -43,7 +51,7 @@ export default function Post() {
       }
 
       try {
-        setIsLoading(true)
+        dispatch(setIsPostLoading(true))
         const post: PostStructOutput = await communityContract?.fetchPostByHash(
           hash
         )
@@ -53,7 +61,7 @@ export default function Post() {
       } catch (error) {
         console.error(error)
       } finally {
-        setIsLoading(false)
+        dispatch(setIsPostLoading(false))
       }
     }
 
@@ -66,38 +74,48 @@ export default function Post() {
   ])
 
   useEffect(() => {
-    async function fetchCoverImage() {
+    async function fetchContent() {
       if (coverImage || !postsCommentsStore.isPostLoaded) {
         return
       }
 
-      let res = await web3StorageClient.get(postsCommentsStore.post.content)
-      if (res?.ok) {
-        let files = await res.files()
+      try {
+        setIsContentLoading(true)
 
-        const file = files[0]
-        const fileContent = JSON.parse(await getFileContent(file))
+        let res = await web3StorageClient.get(postsCommentsStore.post.content)
+        if (res?.ok) {
+          let files = await res.files()
 
-        if (fileContent.coverImage) {
-          // setCoverImage(`${IPFS_GATEWAY}${fileContent.coverImage}`)
+          const file = files[0]
+          const fileContent = JSON.parse(await getFileContent(file))
 
-          res = await web3StorageClient.get(fileContent.coverImage)
-          if (res?.ok) {
-            files = await res.files()
-            const fileCoverImage = files[0]
+          setContent(fileContent.content)
 
-            const coverImage = await getFileContent(
-              fileCoverImage,
-              "readAsDataURL"
-            )
+          if (fileContent.coverImage) {
+            // setCoverImage(`${IPFS_GATEWAY}${fileContent.coverImage}`)
 
-            setCoverImage(coverImage)
+            res = await web3StorageClient.get(fileContent.coverImage)
+            if (res?.ok) {
+              files = await res.files()
+              const fileCoverImage = files[0]
+
+              const coverImage = await getFileContent(
+                fileCoverImage,
+                "readAsDataURL"
+              )
+
+              setCoverImage(coverImage)
+            }
           }
         }
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setIsContentLoading(false)
       }
     }
 
-    fetchCoverImage()
+    fetchContent()
   }, [
     postsCommentsStore.post,
     postsCommentsStore.isPostLoaded,
@@ -105,9 +123,47 @@ export default function Post() {
     setCoverImage,
   ])
 
+  useEffect(() => {
+    async function fetchComments() {
+      const communityContract = contractStore?.community as Community
+      if (
+        !communityContract ||
+        !postsCommentsStore.isPostLoaded ||
+        postsCommentsStore.isCommentsLoaded
+      ) {
+        return
+      }
+
+      try {
+        dispatch(setIsCommentsLoading(true))
+        const comments = await communityContract?.fetchCommentsOfPost(
+          postsCommentsStore.post.id
+        )
+        if (comments) {
+          dispatch(setComments(comments))
+          dispatch(setIsCommentsLoaded(true))
+        }
+      } catch (error) {
+        console.error(error)
+      } finally {
+        dispatch(setIsCommentsLoading(false))
+      }
+    }
+
+    fetchComments()
+  }, [
+    contractStore?.community,
+    postsCommentsStore.isPostLoaded,
+    postsCommentsStore.post,
+    postsCommentsStore.isCommentsLoaded,
+    dispatch,
+  ])
+
   useLayoutEffect(
     () => () => {
       dispatch(setPost(null))
+      dispatch(setComments([]))
+      dispatch(setIsCommentsLoaded(false))
     },
     [dispatch]
   )
@@ -127,11 +183,9 @@ export default function Post() {
       <div />
     )
 
-  console.dir(postsCommentsStore.post)
-
   return (
     <Stack mt={5} pb={5} spacing={8} direction="column" alignItems="center">
-      {isLoading ? (
+      {postsCommentsStore.isPostLoading ? (
         <Spinner />
       ) : (
         postsCommentsStore.post && (
@@ -142,9 +196,13 @@ export default function Post() {
               {postsCommentsStore.post.title}
             </Heading>
 
-            <Box>
-              <ReactMarkdown>{postsCommentsStore.post.content}</ReactMarkdown>
-            </Box>
+            {isContentLoading ? (
+              <Spinner />
+            ) : (
+              <Box>
+                <ReactMarkdown>{content}</ReactMarkdown>
+              </Box>
+            )}
           </>
         )
       )}
