@@ -23,6 +23,7 @@ import useLoadContracts from "../hooks/useLoadContract"
 import { setCategories, setIsPostsLoaded } from "../state/postComment"
 import { RootState } from "../state/store"
 import getWeb3StorageClient from "../utils/web3Storage"
+import savePostToIpfs from "../utils/saveToIpfs"
 
 const web3StorageClient = getWeb3StorageClient()
 
@@ -96,36 +97,16 @@ function CreatePost() {
 
     try {
       setIsLoading(true)
-      const cid = await savePostToIpfs()
+      const cid = await savePostToIpfs(
+        post,
+        `${new Date().toLocaleString()}_${selectedCategory}_${post.title}.json`
+      )
       if (!cid) return
 
       await savePost(cid)
       router.push(`/`)
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  async function savePostToIpfs() {
-    /* save post metadata to ipfs */
-    try {
-      const postBlob = new Blob([JSON.stringify(post)], {
-        type: "application/json",
-      })
-      const postFile = new File(
-        [postBlob],
-        `${new Date().toLocaleString()}_${selectedCategory}_${post.title}.json`
-      )
-
-      const uploadedCID = await web3StorageClient.put([postFile])
-
-      console.log("Uploading post to ipfs...")
-      console.log("Data: ", JSON.stringify(post, null, 4))
-      console.log("Post content CID: ", uploadedCID)
-
-      return uploadedCID
-    } catch (err) {
-      console.log("error: ", err)
     }
   }
 

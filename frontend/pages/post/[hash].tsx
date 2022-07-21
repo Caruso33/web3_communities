@@ -1,15 +1,25 @@
-import { Text, Box, Heading, Link, Spinner, Stack } from "@chakra-ui/react"
+import {
+  Box,
+  Button,
+  Heading,
+  Link,
+  Spinner,
+  Stack,
+  Text,
+} from "@chakra-ui/react"
+import "easymde/dist/easymde.min.css"
+import dynamic from "next/dynamic"
 import Image from "next/image"
 import { default as NextLink } from "next/link"
 import { useRouter } from "next/router"
 import { useEffect, useLayoutEffect, useState } from "react"
 import ReactMarkdown from "react-markdown"
 import { useDispatch, useSelector } from "react-redux"
-import { useAccount } from "wagmi"
+import { useAccount, useSigner } from "wagmi"
 import type {
+  CommentStructOutput,
   Community,
   PostStructOutput,
-  CommentStructOutput,
 } from "../../../typechain-types/contracts/Community"
 import useLoadContracts from "../../hooks/useLoadContract"
 import {
@@ -24,6 +34,11 @@ import getFileContent from "../../utils/getFileContent"
 import getWeb3StorageClient from "../../utils/web3Storage"
 
 const web3StorageClient = getWeb3StorageClient()
+
+/* configure the markdown editor to be client-side import */
+const SimpleMDE = dynamic(() => import("react-simplemde-editor"), {
+  ssr: false,
+})
 
 export default function Post() {
   useLoadContracts()
@@ -44,6 +59,10 @@ export default function Post() {
   const [content, setContent] = useState("")
 
   const [writeComment, setWriteComment] = useState(false)
+  const [comment, setComment] = useState("")
+  const [commentError, setCommentError] = useState(false)
+
+  const { data: signer } = useSigner()
 
   useEffect(() => {
     async function fetchPost(hash) {
@@ -170,13 +189,33 @@ export default function Post() {
     [dispatch]
   )
 
+  function createComment() {
+    const communityContract = contractStore?.community as Community
+    if (!communityContract) {
+      return
+    }
+
+    if (!comment) {
+      setCommentError(true)
+    }
+    setCommentError(false)
+
+    // await savePostToIpfs()
+
+    communityContract
+      .connect(signer)
+      .createComment(postsCommentsStore.post.id, comment)
+
+    setComment("")
+  }
+
   const EditLink = address &&
     postsCommentsStore.post &&
     address === postsCommentsStore.post.author && (
       <Box alignSelf="flex-end" mr={5}>
-        <Link>
-          <NextLink href={`/edit-post/${hash}`}>Edit post</NextLink>
-        </Link>
+        <NextLink href={`/edit-post/${hash}`} passHref>
+          <Link>Edit post</Link>
+        </NextLink>
       </Box>
     )
 
@@ -208,22 +247,41 @@ export default function Post() {
             {CoverImage}
 
             <Box w="60vw">
-              <Heading textAlign="center" as="h1">
+              <Heading textAlign="center" as="h1" mb={5}>
                 {postsCommentsStore.post.title}
               </Heading>
 
               {isContentLoading ? (
-                <Spinner />
+                <Box textAlign="center">
+                  <Spinner />
+                </Box>
               ) : (
                 <Box alignSelf="flex-start" mb={50}>
                   <ReactMarkdown>{content}</ReactMarkdown>
                 </Box>
               )}
 
-              {postsCommentsStore.isCommentsLoading ? (
-                <Spinner />
+              {!isContentLoading && postsCommentsStore.isCommentsLoading ? (
+                <Box textAlign="center">
+                  <Spinner />
+                </Box>
               ) : (
                 <Stack pb={5} spacing={3}>
+                  <Button onClick={() => setWriteComment(!writeComment)}>
+                    Add Comment
+                  </Button>
+
+                  {/* {writeComment && (
+                    <>
+                      <SimpleMDE
+                        placeholder="What's on your mind?"
+                        value={comment}
+                        onChange={setComment}
+                      />
+                      <Button alignSelf="flex-end" onClick={() => createComment()}>Create Comment</Button>
+                    </>
+                  )} */}
+
                   <Heading as="h2" mb={5}>
                     Comments
                   </Heading>

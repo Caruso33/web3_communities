@@ -1,6 +1,7 @@
 import { MoonIcon, SunIcon } from "@chakra-ui/icons"
-import { Box, Button, Text, useColorMode } from "@chakra-ui/react"
+import { Link, Box, Button, Text, useColorMode } from "@chakra-ui/react"
 import Image from "next/image"
+import { default as NextLink } from "next/link"
 import { useAccount, useConnect, useDisconnect, useNetwork } from "wagmi"
 import { InjectedConnector } from "wagmi/connectors/injected"
 import deployment from "../utils/deployment.json"
@@ -21,25 +22,33 @@ function Header() {
 
   if (!isConnected)
     content = (
-      <Box
-        display="flex"
-        alignItems="center"
-        justifyContent="space-between"
-        border="1px"
-        borderColor="gray.200"
-        px={5}
-        py={2}
-      >
-        <Image
-          src="/logo-small-transparent.png"
-          alt="Web3 Community Builder"
-          // 1080 × 446
-          width="146"
-          height="60"
-        />
+      <>
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          border="1px"
+          borderColor="gray.200"
+          px={5}
+          py={2}
+        >
+          <NextLink href="/" passHref>
+            <Link>
+              <Image
+                src="/logo-small-transparent.png"
+                alt="Web3 Community Builder"
+                // 1080 × 446
+                width="146"
+                height="60"
+              />
+            </Link>
+          </NextLink>
 
-        <Button onClick={() => connect()}>Connect Wallet</Button>
-      </Box>
+          <Button onClick={() => connect()}>Connect Wallet</Button>
+        </Box>
+
+        <Navbar />
+      </>
     )
   else {
     content = (
@@ -59,20 +68,22 @@ function Header() {
             justifyContent="space-between"
           >
             <Box minW="100">
-              <Image
-                src="/logo-small-transparent.png"
-                alt="Web3 Community Builder"
-                // 1080 × 446
-                width="146"
-                height="60"
-              />
+              <NextLink href="/" passHref>
+                <Link>
+                  <Image
+                    src="/logo-small-transparent.png"
+                    alt="Web3 Community Builder"
+                    // 1080 × 446
+                    width="146"
+                    height="60"
+                  />
+                </Link>
+              </NextLink>
             </Box>
 
             <Box ml={5}>
-              <Text noOfLines={1} >
-                Connected to {address}
-              </Text>{" "}
-              <Text noOfLines={1} >on network {chain?.name}</Text>
+              <Text noOfLines={1}>Connected to {address}</Text>{" "}
+              <Text noOfLines={1}>on network {chain?.name}</Text>
             </Box>
           </Box>
 
@@ -86,6 +97,7 @@ function Header() {
             </Button>
           </Box>
         </Box>
+
         <Navbar />
       </>
     )

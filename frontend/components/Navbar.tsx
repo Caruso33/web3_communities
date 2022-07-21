@@ -18,17 +18,19 @@ const NavLink = ({ children, name }: { children: ReactNode; name: string }) => {
   const href = name === "Home" ? "/" : `/${name.toLowerCase()}`
 
   return (
-    <Link
-      px={2}
-      py={1}
-      rounded={"md"}
-      _hover={{
-        textDecoration: "none",
-        bg: useColorModeValue("gray.200", "gray.700"),
-      }}
-    >
-      <NextLink href={href}>{children}</NextLink>
-    </Link>
+    <NextLink href={href} passHref>
+      <Link
+        px={2}
+        py={1}
+        rounded={"md"}
+        _hover={{
+          textDecoration: "none",
+          bg: useColorModeValue("gray.200", "gray.700"),
+        }}
+      >
+        {children}
+      </Link>
+    </NextLink>
   )
 }
 
