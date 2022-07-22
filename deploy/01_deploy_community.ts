@@ -4,6 +4,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types"
 import path from "path"
 import { developmentChains } from "../scripts/hardhat-helper-config"
 import { verify } from "../scripts/verify"
+import "dotenv/config"
 
 const deploy = async (hre: HardhatRuntimeEnvironment) => {
   const { getNamedAccounts, deployments } = hre
@@ -19,9 +20,13 @@ const deploy = async (hre: HardhatRuntimeEnvironment) => {
     ? 1
     : 6
 
+  const communityName = "EthGlobal Community"
+
+  const args = [communityName]
+
   const community = await deploy("Community", {
     from: deployer,
-    args: ["EthGlobal Community"],
+    args,
     log: true,
     // we need to wait if on a live network so we can verify properly
     waitConfirmations: waitBlockConfirmations,
@@ -66,7 +71,7 @@ const deploy = async (hre: HardhatRuntimeEnvironment) => {
     !developmentChains.includes(network.name) &&
     process.env.ETHERSCAN_API_KEY
   ) {
-    await verify(community.address, [])
+    await verify(community.address, args)
   }
 }
 

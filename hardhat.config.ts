@@ -13,6 +13,7 @@ import fetchCategories from "./scripts/fetchCategories"
 import fetchComments from "./scripts/fetchComments"
 import fetchPost from "./scripts/fetchPost"
 import fetchPosts from "./scripts/fetchPosts"
+import "dotenv/config"
 
 task("fetchCategories", "Fetches all categories")
   .addParam("address", "The address of the contract")
