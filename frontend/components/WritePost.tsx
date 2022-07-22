@@ -14,6 +14,8 @@ import "easymde/dist/easymde.min.css"
 import Image from "next/image"
 import dynamic from "next/dynamic"
 
+/* configure the markdown editor to be client-side import */
+
 const SimpleMDE = dynamic(() => import("react-simplemde-editor"), {
   ssr: false,
 })

@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Flex,
   Heading,
   Link,
   Spinner,
@@ -17,20 +18,17 @@ import ReactMarkdown from "react-markdown"
 import { useDispatch, useSelector } from "react-redux"
 import { useAccount, useSigner } from "wagmi"
 import type { Community } from "../../../typechain-types/contracts/Community"
+import useFetchCommentsOfPost from "../../hooks/useFetchCommentsOfPost"
 import useFetchPostByHash from "../../hooks/useFetchPostByHash"
 import useLoadContracts from "../../hooks/useLoadContract"
 import {
   setComments,
   setIsCommentsLoaded,
-  setIsCommentsLoading,
   setPost,
+  setIsPostLoaded,
 } from "../../state/postComment"
 import { RootState } from "../../state/store"
-import getFileContent from "../../utils/getFileContent"
 import savePostToIpfs from "../../utils/saveToIpfs"
-import getWeb3StorageClient from "../../utils/web3Storage"
-
-const web3StorageClient = getWeb3StorageClient()
 
 /* configure the markdown editor to be client-side import */
 const SimpleMDE = dynamic(() => import("react-simplemde-editor"), {
@@ -53,109 +51,22 @@ export default function Post() {
   const dispatch = useDispatch()
 
   const [isLoading, setIsLoading] = useState(false)
-  const [isContentLoading, setIsContentLoading] = useState(false)
-  const [coverImage, setCoverImage] = useState<string | null>(null)
-  const [content, setContent] = useState("")
 
   const [writeComment, setWriteComment] = useState(false)
   const [comment, setComment] = useState("")
 
   useFetchPostByHash(hash as string)
+  // useFetchCommentsOfPost()
 
-  useEffect(() => {
-    async function fetchContent() {
-      if (coverImage || !postsCommentsStore.isPostLoaded) {
-        return
-      }
+  useLayoutEffect(() => {
+    return () => {
+      dispatch(setPost(null))
+      dispatch(setIsPostLoaded(false))
 
-      try {
-        setIsContentLoading(true)
-
-        let res = await web3StorageClient.get(postsCommentsStore.post.content)
-        if (res?.ok) {
-          let files = await res.files()
-
-          const file = files[0]
-          const fileContent = JSON.parse(await getFileContent(file))
-
-          setContent(fileContent.content)
-
-          if (fileContent.coverImage) {
-            // setCoverImage(`${IPFS_GATEWAY}${fileContent.coverImage}`)
-
-            res = await web3StorageClient.get(fileContent.coverImage)
-            if (res?.ok) {
-              files = await res.files()
-              const fileCoverImage = files[0]
-
-              const coverImage = await getFileContent(
-                fileCoverImage,
-                "readAsDataURL"
-              )
-
-              setCoverImage(coverImage)
-            }
-          }
-        }
-      } catch (error) {
-        console.error(error)
-      } finally {
-        setIsContentLoading(false)
-      }
-    }
-
-    fetchContent()
-  }, [
-    postsCommentsStore.post,
-    postsCommentsStore.isPostLoaded,
-    coverImage,
-    setCoverImage,
-  ])
-
-  const fetchComments = useCallback(async () => {
-    const communityContract = contractStore?.community as Community
-    if (
-      !communityContract ||
-      !postsCommentsStore.isPostLoaded ||
-      postsCommentsStore.isCommentsLoaded
-    ) {
-      return
-    }
-
-    try {
-      dispatch(setIsCommentsLoading(true))
-      const comments = await communityContract?.fetchCommentsOfPost(
-        (postsCommentsStore.post as Community.PostStruct).id
-      )
-      if (comments) {
-        dispatch(setComments(comments))
-        dispatch(setIsCommentsLoaded(true))
-      }
-    } catch (error) {
-      console.error(error)
-    } finally {
-      dispatch(setIsCommentsLoading(false))
-    }
-  }, [
-    contractStore?.community,
-    postsCommentsStore.isPostLoaded,
-    postsCommentsStore.post,
-    postsCommentsStore.isCommentsLoaded,
-    dispatch,
-  ])
-
-  useEffect(() => {
-    fetchComments()
-  }, [fetchComments])
-
-  useLayoutEffect(
-    () => () => {
-      dispatch(setPost({}))
       dispatch(setComments([]))
       dispatch(setIsCommentsLoaded(false))
-    },
-    [dispatch]
-  )
+    }
+  }, [dispatch])
 
   async function createComment() {
     const communityContract = contractStore?.community as Community
@@ -171,6 +82,10 @@ export default function Post() {
       )
     }
 
+    if (!postsCommentsStore.post) {
+      throw new Error("No post found. Please reload page.")
+    }
+
     try {
       setIsLoading(true)
 
@@ -181,18 +96,18 @@ export default function Post() {
       }
 
       // IPFS
-      const cid = await savePostToIpfs(
+      const cid = (await savePostToIpfs(
         data,
-        `${new Date().toLocaleString()}_${
+        `${new Date().toLocaleString().replaceAll(/(\W)/g, "_")}_${
           (postsCommentsStore.post as Community.PostStruct).id
         }_comment.json`
-      )
-      if (!cid) if (!cid) throw Error("Failed to save comment to IPFS")
+      )) as string
+      if (!cid) throw Error("Failed to save comment to IPFS")
 
       // Smart Contract
       const tx = await communityContract
         .connect(signer)
-        .createComment(postsCommentsStore.post.id, comment)
+        .createComment(postsCommentsStore.post.id, cid)
       await tx.wait()
 
       // local state
@@ -200,10 +115,8 @@ export default function Post() {
       setWriteComment(!writeComment)
 
       // global state
-      dispatch(setIsCommentsLoaded(false))
       dispatch(setComments([]))
-
-      fetchComments()
+      dispatch(setIsCommentsLoaded(false))
     } catch (err) {
       console.error(err)
     } finally {
@@ -213,7 +126,7 @@ export default function Post() {
 
   const EditLink = address &&
     postsCommentsStore.post &&
-    address === postsCommentsStore.post.author &&
+    address === postsCommentsStore.post?.author &&
     null && (
       <Box alignSelf="flex-end" mr={5}>
         <NextLink href={`/edit-post/${hash}`} passHref>
@@ -222,10 +135,10 @@ export default function Post() {
       </Box>
     )
 
-  const CoverImage = coverImage && (
+  const CoverImage = postsCommentsStore.post?.coverImage && (
     <Box mb={5} h={300} w={300}>
       <Image
-        src={coverImage}
+        src={postsCommentsStore.post.coverImage}
         alt="Cover image"
         width="100%"
         height="100%"
@@ -249,22 +162,20 @@ export default function Post() {
 
             {CoverImage}
 
-            <Box w="60vw">
-              <Heading textAlign="center" as="h1" mb={5}>
-                {postsCommentsStore.post.title as string}
+            <Flex w="60vw" flexDirection="column">
+              <Text noOfLines={1} as="i" alignSelf="flex-end" px={2}>
+                by {postsCommentsStore.post?.author as string}
+              </Text>
+
+              <Heading textAlign="center" as="h1" my={5}>
+                {postsCommentsStore.post?.title as string}
               </Heading>
 
-              {isContentLoading ? (
-                <Box textAlign="center">
-                  <Spinner />
-                </Box>
-              ) : (
-                <Box alignSelf="flex-start" mb={50}>
-                  <ReactMarkdown>{content}</ReactMarkdown>
-                </Box>
-              )}
+              <Box alignSelf="flex-start" mb={50}>
+                <ReactMarkdown>{postsCommentsStore.post.content}</ReactMarkdown>
+              </Box>
 
-              {!isContentLoading && postsCommentsStore.isCommentsLoading ? (
+              {postsCommentsStore.isCommentsLoading ? (
                 <Box textAlign="center">
                   <Spinner />
                 </Box>
@@ -309,19 +220,20 @@ export default function Post() {
                   {postsCommentsStore.comments.map(
                     // @ts-ignore
                     (comment: Community.CommentStructOutput, index) => (
-                      <Box
+                      <Flex
                         key={`${comment.id}_${index}`}
                         w="100%"
                         p={5}
                         shadow="md"
                         borderWidth="1px"
+                        flexDirection="column"
                       >
-                        <Text noOfLines={1}>{comment.author as string}</Text>
+                        <Text noOfLines={1} as="i" alignSelf="flex-end" px={2}>
+                          by {comment.author as string}
+                        </Text>
 
-                        <ReactMarkdown>
-                          {comment.content as string}
-                        </ReactMarkdown>
-                      </Box>
+                        <ReactMarkdown>{comment.hash as string}</ReactMarkdown>
+                      </Flex>
                     )
                   )}
                 </Stack>
@@ -331,7 +243,7 @@ export default function Post() {
                 postsCommentsStore.comments.length === 0 && (
                   <Text>No comments yet</Text>
                 )}
-            </Box>
+            </Flex>
           </>
         )
       )}

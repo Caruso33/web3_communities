@@ -35,7 +35,7 @@ function Header() {
           <NextLink href="/" passHref>
             <Link>
               <Image
-                src="../public/logo-small-transparent.png"
+                src="/logo-small-transparent.png"
                 alt="Web3 Community Builder"
                 // 1080 × 446
                 width="146"
@@ -83,8 +83,18 @@ function Header() {
             </Box>
 
             <Box ml={5}>
-              <Text noOfLines={1}>Connected to {address}</Text>{" "}
-              <Text noOfLines={1}>on network {chain?.name}</Text>
+              <Text noOfLines={1}>
+                Connected to{" "}
+                <Text as="i" px={2}>
+                  {address}
+                </Text>
+              </Text>{" "}
+              <Text noOfLines={1}>
+                on network{" "}
+                <Text as="i" px={2}>
+                  {chain?.name}
+                </Text>
+              </Text>
             </Box>
           </Box>
 

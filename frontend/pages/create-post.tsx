@@ -1,8 +1,8 @@
-import { Box, Heading } from "@chakra-ui/react"
+import { Box, Heading, Text } from "@chakra-ui/react"
 import "easymde/dist/easymde.min.css"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/router"
-import { useEffect, useRef, useState } from "react"; // new
+import { useEffect, useRef, useState } from "react" // new
 import { useDispatch, useSelector } from "react-redux"
 import { useAccount, useSigner } from "wagmi"
 import { Community } from "../../typechain-types/contracts/Community"
@@ -14,11 +14,6 @@ import savePostToIpfs from "../utils/saveToIpfs"
 import getWeb3StorageClient from "../utils/web3Storage"
 
 const web3StorageClient = getWeb3StorageClient()
-
-/* configure the markdown editor to be client-side import */
-const SimpleMDE = dynamic(() => import("react-simplemde-editor"), {
-  ssr: false,
-})
 
 const initialState = {
   title: "",
@@ -111,7 +106,9 @@ function CreatePost() {
       // IPFS
       const cid = (await savePostToIpfs(
         data,
-        `${new Date().toLocaleString()}_${selectedCategory}_${post.title}.json`
+        `${new Date()
+          .toLocaleString()
+          .replaceAll(/(\W)/g, "_")}_${selectedCategory}_${post.title}.json`
       )) as string
       if (!cid) throw Error("Failed to save post to IPFS")
 
@@ -136,7 +133,7 @@ function CreatePost() {
   }
 
   async function handleFileChange(e: any) {
-    /* upload cover image to ipfs and save hash to state */
+    /* upload cover image to ipfs and save content to state */
     const uploadedFile = e.target.files[0]
     if (!uploadedFile) return
 
@@ -163,7 +160,7 @@ function CreatePost() {
         Create Post
       </Heading>
 
-      {isConnected && (
+      {isConnected ? (
         <WritePost
           mode="create"
           isLoading={isLoading}
@@ -184,6 +181,8 @@ function CreatePost() {
           triggerOnChange={triggerOnChange}
           submitPost={createNewPost}
         />
+      ) : (
+        <Text>Please make sure to be connected with Metamask.</Text>
       )}
     </Box>
   )

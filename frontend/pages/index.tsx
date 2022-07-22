@@ -1,5 +1,13 @@
 import { ChevronRightIcon } from "@chakra-ui/icons"
-import { Box, Heading, Link, Spinner, Stack, Text } from "@chakra-ui/react"
+import {
+  Box,
+  Flex,
+  Heading,
+  Link,
+  Spinner,
+  Stack,
+  Text,
+} from "@chakra-ui/react"
 import type { NextPage } from "next"
 import { default as NextLink } from "next/link"
 import { useEffect, useState } from "react"
@@ -76,32 +84,37 @@ const Home: NextPage = () => {
                     }}
                   >
                     <Box w="100%" style={{ cursor: "pointer" }}>
-                      <NextLink href={`/post/${post.content}`} passHref>
+                      <NextLink href={`/post/${post.hash}`} passHref>
                         <Link>
                           <ChevronRightIcon
                             boxSize={50}
                             style={{ height: "100%", float: "right" }}
                           />
 
-                          <Box>
+                          <Flex flexDirection="column">
+                            <Text
+                              noOfLines={1}
+                              as="i"
+                              alignSelf="flex-end"
+                              px={2}
+                            >
+                              by {post.author as string}
+                            </Text>
                             <Heading fontSize="xl">
                               {post.title as string}
                             </Heading>
-                            <Text noOfLines={1}>
-                              by {post.author as string}
-                            </Text>
-                          </Box>
+                          </Flex>
                         </Link>
                       </NextLink>
 
                       <NextLink
-                        href={`https://ipfs.io/ipfs/${post.content}`}
+                        href={`https://ipfs.io/ipfs/${post.hash}`}
                         passHref
                       >
                         <Box mt={5}>
                           <Link>
                             <Text noOfLines={3}>
-                              Content at: {post.content as string}
+                              Content at: {post.hash as string}
                             </Text>
                           </Link>
                         </Box>

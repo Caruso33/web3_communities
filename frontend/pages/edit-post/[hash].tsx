@@ -72,7 +72,7 @@ function EditPost() {
         // const { id, author, published } = postsCommentsStore.post
 
         // @ts-ignore
-        let res = await web3StorageClient.get(postsCommentsStore.post.content)
+        let res = await web3StorageClient.get(postsCommentsStore.post.hash)
 
         if (res?.ok) {
           let files = await res.files()
@@ -139,7 +139,7 @@ function EditPost() {
     try {
       const categoryIndex = selectedCategory !== -1 ? selectedCategory : 0
       const data = {
-        content: post.content,
+        content: post.hash,
         coverImage: post.coverImage,
         title: post.title,
         author: await signer.getAddress(),
@@ -150,7 +150,9 @@ function EditPost() {
 
       const cid = (await savePostToIpfs(
         data,
-        `${new Date().toLocaleString()}_${selectedCategory}_${
+        `${new Date()
+          .toLocaleString()
+          .replaceAll(/(\W)/g, "_")}_${selectedCategory}_${
           post.title
         }_edited.json`
       )) as string

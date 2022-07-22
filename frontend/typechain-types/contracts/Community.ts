@@ -32,7 +32,7 @@ export declare namespace Community {
     author: PromiseOrValue<string>;
     id: PromiseOrValue<BigNumberish>;
     postId: PromiseOrValue<BigNumberish>;
-    content: PromiseOrValue<string>;
+    hash: PromiseOrValue<string>;
     createdAt: PromiseOrValue<BigNumberish>;
     lastUpdatedAt: PromiseOrValue<BigNumberish>;
   };
@@ -48,7 +48,7 @@ export declare namespace Community {
     author: string;
     id: BigNumber;
     postId: BigNumber;
-    content: string;
+    hash: string;
     createdAt: BigNumber;
     lastUpdatedAt: BigNumber;
   };
@@ -57,7 +57,7 @@ export declare namespace Community {
     author: PromiseOrValue<string>;
     id: PromiseOrValue<BigNumberish>;
     title: PromiseOrValue<string>;
-    content: PromiseOrValue<string>;
+    hash: PromiseOrValue<string>;
     categoryIndex: PromiseOrValue<BigNumberish>;
     published: PromiseOrValue<boolean>;
     createdAt: PromiseOrValue<BigNumberish>;
@@ -77,7 +77,7 @@ export declare namespace Community {
     author: string;
     id: BigNumber;
     title: string;
-    content: string;
+    hash: string;
     categoryIndex: BigNumber;
     published: boolean;
     createdAt: BigNumber;

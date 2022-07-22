@@ -13,7 +13,7 @@ const initialState: PostState = {
 
   isPostLoading: false,
   isPostLoaded: false,
-  post: {},
+  post: null,
 
   isCommentsLoading: false,
   isCommentsLoaded: false,
@@ -42,7 +42,7 @@ export const PostCommentSlice = createSlice({
     setIsPostsLoaded: (state, action: PayloadAction<boolean>) => {
       state.isPostsLoaded = action.payload
     },
-    setPosts: (state, action: PayloadAction<Community.PostStruct[]>) => {
+    setPosts: (state, action: PayloadAction<Post[]>) => {
       state.isPostsLoading = false
       state.isPostsLoaded = !!action.payload
       state.posts = action.payload
@@ -51,7 +51,10 @@ export const PostCommentSlice = createSlice({
     setIsPostLoading: (state, action: PayloadAction<boolean>) => {
       state.isPostLoading = action.payload
     },
-    setPost: (state, action: PayloadAction<Community.PostStruct | {}>) => {
+    setIsPostLoaded: (state, action: PayloadAction<boolean>) => {
+      state.isPostLoaded = action.payload
+    },
+    setPost: (state, action: PayloadAction<Post | null>) => {
       state.isPostLoading = false
       state.isPostLoaded = !!action.payload
       state.post = action.payload
@@ -76,6 +79,7 @@ export const {
   setIsPostLoading,
   setIsCommentsLoading,
   setIsPostsLoaded,
+  setIsPostLoaded,
   setIsCategoriesLoaded,
   setIsCommentsLoaded,
   setCategories,
@@ -86,6 +90,16 @@ export const {
 
 export default PostCommentSlice.reducer
 
+export interface Post extends Community.PostStructOutput {
+  content: string
+  coverImageHash: string
+  coverImage: string
+}
+
+export interface Comment extends Community.CommentStructOutput {
+  content: string
+}
+
 export interface PostState {
   isCategoriesLoading: boolean
   isCategoriesLoaded: boolean
@@ -93,13 +107,13 @@ export interface PostState {
 
   isPostsLoading: boolean
   isPostsLoaded: boolean
-  posts: Community.PostStruct[]
+  posts: Post[]
 
   isPostLoading: boolean
   isPostLoaded: boolean
-  post: Community.PostStruct | {}
+  post: Post | null
 
   isCommentsLoading: boolean
   isCommentsLoaded: boolean
-  comments: Community.CommentStruct[]
+  comments: Comment[]
 }
