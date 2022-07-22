@@ -6,14 +6,14 @@ import Wagmi from "../components/Wagmi"
 import { useIsMounted } from "../hooks"
 import { store } from "../state/store"
 import "../styles/globals.css"
-import { customTheme } from "../utils/theme"
+import { theme } from "../utils/theme"
 
 function MyApp({ Component, pageProps }: AppProps) {
   const isMounted = useIsMounted()
 
   return (
     <Provider store={store}>
-      <ChakraProvider theme={customTheme}>
+      <ChakraProvider theme={theme}>
         <Wagmi>
           {isMounted && <Header />}
 

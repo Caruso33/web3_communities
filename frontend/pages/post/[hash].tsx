@@ -17,6 +17,7 @@ import ReactMarkdown from "react-markdown"
 import { useDispatch, useSelector } from "react-redux"
 import { useAccount, useSigner } from "wagmi"
 import type {
+  // @ts-ignore
   CommentStructOutput,
   Community,
 } from "../../../typechain-types/contracts/Community"
@@ -57,12 +58,11 @@ export default function Post() {
 
   const [isLoading, setIsLoading] = useState(false)
   const [isContentLoading, setIsContentLoading] = useState(false)
-  const [coverImage, setCoverImage] = useState(null)
+  const [coverImage, setCoverImage] = useState<string | null>(null)
   const [content, setContent] = useState("")
 
   const [writeComment, setWriteComment] = useState(false)
   const [comment, setComment] = useState("")
-  const [commentError, setCommentError] = useState(false)
 
   useFetchPostByHash(hash as string)
 
@@ -175,12 +175,6 @@ export default function Post() {
       )
     }
 
-    if (!comment) {
-      setCommentError(true)
-    }
-
-    setCommentError(false)
-
     try {
       setIsLoading(true)
 
@@ -223,7 +217,8 @@ export default function Post() {
 
   const EditLink = address &&
     postsCommentsStore.post &&
-    address === postsCommentsStore.post.author && (
+    address === postsCommentsStore.post.author &&
+    null && (
       <Box alignSelf="flex-end" mr={5}>
         <NextLink href={`/edit-post/${hash}`} passHref>
           <Link>Edit post</Link>

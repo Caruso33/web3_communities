@@ -6,7 +6,7 @@ function savePostToIpfs(
   object: any,
   filename: string,
   wrapWithDirectory: boolean = false
-) {
+): Promise<string | Error> {
   return new Promise(async (resolve, reject) => {
     /* save post metadata to ipfs */
     try {

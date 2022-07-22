@@ -18,8 +18,9 @@ const SimpleMDE = dynamic(() => import("react-simplemde-editor"), {
   ssr: false,
 })
 
-export default function WritePost(props) {
+export default function WritePost(props: any) {
   const {
+    mode,
     isLoading,
     post,
     postError,
@@ -115,16 +116,23 @@ export default function WritePost(props) {
           style={{ display: "none" }}
         />
         <Button minW={150} onClick={triggerOnChange} isDisabled={isLoading}>
-          {isLoading ? <Spinner /> : "Add cover image"}
+          {isLoading ? (
+            <Spinner />
+          ) : mode === "create" ? (
+            "Add cover image"
+          ) : (
+            "Change cover image"
+          )}
         </Button>
 
-        <Button
-          minW={150}
-          ml={5}
-          onClick={submitPost}
-          isDisabled={isLoading}
-        >
-          {isLoading ? <Spinner /> : "Publish"}
+        <Button minW={150} ml={5} onClick={submitPost} isDisabled={isLoading}>
+          {isLoading ? (
+            <Spinner />
+          ) : mode === "create" ? (
+            "Publish"
+          ) : (
+            "Publish changes"
+          )}
         </Button>
       </Box>
     </>

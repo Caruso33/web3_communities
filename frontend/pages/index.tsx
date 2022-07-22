@@ -1,9 +1,10 @@
 import { ChevronRightIcon } from "@chakra-ui/icons"
-import { Box, Heading, HStack, Spinner, Stack, Text } from "@chakra-ui/react"
+import { Box, Heading, Link, Spinner, Stack, Text } from "@chakra-ui/react"
 import type { NextPage } from "next"
-import Link from "next/link"
+import { default as NextLink } from "next/link"
 import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
+// @ts-ignore
 import type { PostStruct } from "../../typechain-types/contracts/Community"
 import useLoadContracts from "../hooks/useLoadContract"
 import { setPosts } from "../state/postComment"
@@ -74,19 +75,32 @@ const Home: NextPage = () => {
                     borderWidth: "2px",
                   }}
                 >
-                  <Link href={`/post/${post.content}`}>
-                    <Box w="100%" style={{ cursor: "pointer" }}>
-                      <ChevronRightIcon
-                        boxSize={50}
-                        style={{ height: "100%", float: "right" }}
-                      />
+                  <Box w="100%" style={{ cursor: "pointer" }}>
+                    <NextLink href={`/post/${post.content}`} passHref>
+                      <Link>
+                        <ChevronRightIcon
+                          boxSize={50}
+                          style={{ height: "100%", float: "right" }}
+                        />
 
-                      <Heading fontSize="xl">{post.title}</Heading>
-                      <Text noOfLines={1}>by {post.author}</Text>
+                        <Box>
+                          <Heading fontSize="xl">{post.title}</Heading>
+                          <Text noOfLines={1}>by {post.author}</Text>
+                        </Box>
+                      </Link>
+                    </NextLink>
 
-                      <Text noOfLines={3}>Content at: {post.content}</Text>
-                    </Box>
-                  </Link>
+                    <NextLink
+                      href={`https://ipfs.io/ipfs/${post.content}`}
+                      passHref
+                    >
+                      <Box mt={5}>
+                        <Link>
+                          <Text noOfLines={3}>Content at: {post.content}</Text>
+                        </Link>
+                      </Box>
+                    </NextLink>
+                  </Box>
                 </Box>
               )
             })

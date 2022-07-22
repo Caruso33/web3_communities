@@ -24,6 +24,7 @@ export const ContractSlice = createSlice({
       // which detects changes to a "draft state" and produces a brand new
       // immutable state based off those changes
       state.isCommunityLoaded = true
+      // @ts-ignore
       state.community = action.payload
     },
   },

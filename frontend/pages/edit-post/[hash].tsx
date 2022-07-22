@@ -1,22 +1,29 @@
-import { Box, Button, Heading, Text } from "@chakra-ui/react"
+import { Box, Heading, Text } from "@chakra-ui/react"
 import "easymde/dist/easymde.min.css"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/router"
-import { ChangeEvent, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useAccount, useSigner } from "wagmi"
 import { Community } from "../../../typechain-types/contracts/Community"
 import WritePost from "../../components/WritePost"
 import useFetchPostByHash from "../../hooks/useFetchPostByHash"
+import useLoadContracts from "../../hooks/useLoadContract"
 import { setIsPostsLoaded, setPosts } from "../../state/postComment"
 import { RootState } from "../../state/store"
+import getFileContent from "../../utils/getFileContent"
 import savePostToIpfs from "../../utils/saveToIpfs"
+import getWeb3StorageClient from "../../utils/web3Storage"
+
+const web3StorageClient = getWeb3StorageClient()
 
 const SimpleMDE = dynamic(() => import("react-simplemde-editor"), {
   ssr: false,
 })
 
 function EditPost() {
+  useLoadContracts()
+
   const contractStore = useSelector((state: RootState) => state.contract)
   const postsCommentsStore = useSelector(
     (state: RootState) => state.postsComments
@@ -27,20 +34,26 @@ function EditPost() {
   const { isConnected } = useAccount()
   const { data: signer } = useSigner()
 
-  const [post, setPost] = useState({
+  const [post, setPostLocally] = useState({
+    id: "",
+    author: "",
+    published: false,
+
     title: "",
     content: "",
     coverImage: "",
+    coverImageHash: "",
+    categoryIndex: null,
   })
-  const [postError, setPostError] = useState({ title: false, content: false })
+  const [postError, _setPostError] = useState({ title: false, content: false })
   const [image, setImage] = useState(null)
 
-  function onPostInputChange(e) {
-    setPost(() => ({ ...post, [e.target.name]: e.target.value }))
+  function onPostInputChange(e: any) {
+    setPostLocally(() => ({ ...post, [e.target.name]: e.target.value }))
   }
 
   const fileRef = useRef(null)
-  const [selectedCategory, setSelectedCategory] = useState<number>("")
+  const [selectedCategory, setSelectedCategory] = useState<number>(-1)
 
   const [isLoading, setIsLoading] = useState(false)
 
@@ -50,10 +63,63 @@ function EditPost() {
   useFetchPostByHash(hash as string)
 
   useEffect(() => {
-    if (postsCommentsStore.isPostLoaded && postsCommentsStore.post && !post) {
-      setPost(postsCommentsStore.post)
+    async function setPostDataLocally() {
+      if (
+        postsCommentsStore.isPostLoaded &&
+        postsCommentsStore.post &&
+        !post.id
+      ) {
+        const { id, author, published } = postsCommentsStore.post
+
+        let res = await web3StorageClient.get(postsCommentsStore.post.content)
+
+        if (res?.ok) {
+          let files = await res.files()
+
+          const file = files[0]
+          const fileContent = JSON.parse(await getFileContent(file))
+
+          const { title, content, coverImage, categoryIndex } = fileContent
+
+          // setPostLocally({
+          //   ...post,
+          //   id,
+          //   author,
+          //   published,
+          //   title,
+          //   content,
+          //   categoryIndex,
+          //   coverImageHash: coverImage,
+          // })
+
+          // if (fileContent.coverImage) {
+          //   res = await web3StorageClient.get(fileContent.coverImage)
+          //   if (res?.ok) {
+          //     files = await res.files()
+          //     const fileCoverImage = files[0]
+
+          //     const coverImage = await getFileContent(
+          //       fileCoverImage,
+          //       "readAsDataURL"
+          //     )
+
+          //     setPostLocally({
+          //       ...post,
+          //       coverImage,
+          //     })
+          //   }
+          // }
+        }
+      }
     }
-  }, [postsCommentsStore.isPostLoaded, postsCommentsStore.post, post, setPost])
+
+    setPostDataLocally()
+  }, [
+    postsCommentsStore.isPostLoaded,
+    postsCommentsStore.post,
+    post,
+    setPostLocally,
+  ])
 
   async function updatePost() {
     const communityContract = contractStore?.community as Community
@@ -70,7 +136,7 @@ function EditPost() {
     }
 
     try {
-      const categoryIndex = selectedCategory || 0
+      const categoryIndex = selectedCategory !== -1 ? selectedCategory : 0
       const data = {
         content: post.content,
         coverImage: post.coverImage,
@@ -81,12 +147,12 @@ function EditPost() {
 
       setIsLoading(true)
 
-      const cid = await savePostToIpfs(
+      const cid = (await savePostToIpfs(
         data,
         `${new Date().toLocaleString()}_${selectedCategory}_${
           post.title
         }_edited.json`
-      )
+      )) as string
       if (!cid) throw Error("Failed to save post to IPFS")
 
       // Smart Contract
@@ -108,6 +174,7 @@ function EditPost() {
 
   function triggerOnChange() {
     /* trigger handleFileChange handler of hidden file input */
+    // @ts-ignore
     fileRef?.current?.click()
   }
 
@@ -124,7 +191,7 @@ function EditPost() {
       })
       console.log("Uploaded image to ipfs, CID: ", uploadedCID)
 
-      setPost((state) => ({ ...state, coverImage: uploadedCID }))
+      setPostLocally((state) => ({ ...state, coverImage: uploadedCID }))
       setImage(uploadedFile)
     } catch (err) {
       console.log("Error: ", err)
@@ -147,18 +214,19 @@ function EditPost() {
 
       {isConnected && (
         <WritePost
+          mode="edit"
           isLoading={isLoading}
           post={post}
           postError={postError}
           image={image}
           categories={postsCommentsStore.categories}
           selectedCategory={selectedCategory}
-          onChangeSelectedCategory={(e: ChangeEvent) =>
+          onChangeSelectedCategory={(e: any) =>
             setSelectedCategory(e.target.value)
           }
           onTitleInputChange={onPostInputChange}
           onMDEditorChange={(value: string) =>
-            setPost({ ...post, content: value })
+            setPostLocally({ ...post, content: value })
           }
           handleFileChange={handleFileChange}
           fileRef={fileRef}

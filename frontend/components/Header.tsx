@@ -106,7 +106,7 @@ function Header() {
       // .filter((chainIdString) => chainIdString !== "1337")
       .map((chainIdString) => +chainIdString)
 
-    if (!deployedChainIds?.includes(chain?.id)) {
+    if (!deployedChainIds?.includes(chain?.id!)) {
       const deployedChainNames = chains
         .filter((chain) => deployedChainIds.includes(chain.id))
         .map((chain) => chain.name)
@@ -115,7 +115,7 @@ function Header() {
         <Box>
           {content}
 
-          <Box>
+          <Box m={5}>
             Please connect to one of the chain(s):{" "}
             {deployedChainNames.join(", ")}
           </Box>

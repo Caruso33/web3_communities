@@ -1,7 +1,9 @@
 import type { PayloadAction } from "@reduxjs/toolkit"
 import { createSlice } from "@reduxjs/toolkit"
 import type {
+  // @ts-ignore
   CommentStruct,
+  // @ts-ignore
   PostStruct,
 } from "../../typechain-types/contracts/Community"
 

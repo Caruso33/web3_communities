@@ -7,11 +7,35 @@ import {
   WagmiConfig,
 } from "wagmi"
 import { InjectedConnector } from "wagmi/connectors/injected"
+import { MetaMaskConnector } from "wagmi/connectors/metaMask"
 import { alchemyProvider } from "wagmi/providers/alchemy"
 import { jsonRpcProvider } from "wagmi/providers/jsonRpc"
-import { MetaMaskConnector } from "wagmi/connectors/metaMask"
 import { publicProvider } from "wagmi/providers/public"
 // import { JsonRpcProvider } from "@ethersproject/providers"
+
+const isLocalNetwork = process.env.NEXT_PUBLIC_DEPLOYED_CHAIN_ID === "1337"
+
+const providerArray = [
+  alchemyProvider({
+    alchemyId: process.env.NEXT_PUBLIC_ALCHEMY_ID,
+  }),
+
+  publicProvider(),
+]
+
+if (isLocalNetwork) {
+  console.log("Connecting to local JSON-RPC provider")
+
+  providerArray.unshift(
+    jsonRpcProvider({
+      rpc: (_chain) => {
+        return {
+          http: "http://localhost:8545",
+        }
+      },
+    })
+  )
+}
 
 const { chains, provider, webSocketProvider } = configureChains(
   [
@@ -21,21 +45,7 @@ const { chains, provider, webSocketProvider } = configureChains(
     // chain.hardhat,
     chain.localhost,
   ],
-  [
-    jsonRpcProvider({
-      rpc: (_chain) => {
-        return {
-          http: "http://localhost:8545",
-        }
-      },
-    }),
-
-    alchemyProvider({
-      alchemyId: process.env.NEXT_PUBLIC_ALCHEMY_ID,
-    }),
-
-    publicProvider(),
-  ]
+  providerArray
 )
 const wagmiClient = createClient({
   autoConnect: true,

@@ -1,8 +1,8 @@
 import { ethers } from "ethers"
 import { useEffect, useRef } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { useNetwork, useProvider, useSigner } from "wagmi"
-import { setCommunity, setCommunitySigner } from "../state/contract"
+import { useNetwork, useProvider } from "wagmi"
+import { setCommunity } from "../state/contract"
 import { RootState } from "../state/store"
 import deployment from "../utils/deployment.json"
 
@@ -25,8 +25,10 @@ function useLoadContracts() {
       return
     }
 
-    const deploymentChainData =
-      deployment[process.env.NEXT_PUBLIC_DEPLOYED_CHAIN_ID!]
+    // @ts-ignore
+    const deploymentChainData = deployment[
+      process.env.NEXT_PUBLIC_DEPLOYED_CHAIN_ID
+    ] as Record<string, any>
     if (!deploymentChainData) {
       return
     }

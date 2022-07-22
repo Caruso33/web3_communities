@@ -1,17 +1,17 @@
-import dynamic from "next/dynamic"
-import { useRouter } from "next/router"
-import { ChangeEvent, useEffect, useRef, useState } from "react" // new
 import { Box, Heading } from "@chakra-ui/react"
 import "easymde/dist/easymde.min.css"
+import dynamic from "next/dynamic"
+import { useRouter } from "next/router"
+import { useEffect, useRef, useState } from "react"; // new
 import { useDispatch, useSelector } from "react-redux"
 import { useAccount, useSigner } from "wagmi"
 import { Community } from "../../typechain-types/contracts/Community"
+import WritePost from "../components/WritePost"
 import useLoadContracts from "../hooks/useLoadContract"
 import { setCategories, setIsPostsLoaded } from "../state/postComment"
 import { RootState } from "../state/store"
-import getWeb3StorageClient from "../utils/web3Storage"
 import savePostToIpfs from "../utils/saveToIpfs"
-import WritePost from "../components/WritePost"
+import getWeb3StorageClient from "../utils/web3Storage"
 
 const web3StorageClient = getWeb3StorageClient()
 
@@ -44,7 +44,7 @@ function CreatePost() {
   const [postError, setPostError] = useState({ title: false, content: false })
   const [image, setImage] = useState(null)
 
-  const [selectedCategory, setSelectedCategory] = useState<number>("")
+  const [selectedCategory, setSelectedCategory] = useState<number>(-1)
 
   const [isLoading, setIsLoading] = useState(false)
 
@@ -68,7 +68,7 @@ function CreatePost() {
     fetchCategories()
   }, [contractStore, postsCommentsStore.isCategoriesLoaded, dispatch])
 
-  function onPostInputChange(e) {
+  function onPostInputChange(e: any) {
     setPost(() => ({ ...post, [e.target.name]: e.target.value }))
   }
 
@@ -101,7 +101,7 @@ function CreatePost() {
     try {
       setIsLoading(true)
 
-      const categoryIndex = selectedCategory || 0
+      const categoryIndex = selectedCategory != -1 ? selectedCategory : 0
       const data = {
         ...post,
         author: await signer.getAddress(),
@@ -131,6 +131,7 @@ function CreatePost() {
 
   function triggerOnChange() {
     /* trigger handleFileChange handler of hidden file input */
+    // @ts-ignore
     fileRef?.current?.click()
   }
 
@@ -164,13 +165,14 @@ function CreatePost() {
 
       {isConnected && (
         <WritePost
+          mode="create"
           isLoading={isLoading}
           post={post}
           postError={postError}
           image={image}
           categories={postsCommentsStore.categories}
           selectedCategory={selectedCategory}
-          onChangeSelectedCategory={(e: ChangeEvent) =>
+          onChangeSelectedCategory={(e: any) =>
             setSelectedCategory(e.target.value)
           }
           onTitleInputChange={onPostInputChange}
@@ -182,98 +184,6 @@ function CreatePost() {
           triggerOnChange={triggerOnChange}
           submitPost={createNewPost}
         />
-        // <>
-        //   <FormControl
-        //     variant="floating"
-        //     id="title"
-        //     isRequired
-        //     isInvalid={postError.title}
-        //     my={5}
-        //   >
-        //     <FormLabel>Title</FormLabel>
-        //     <Input
-        //       onChange={onPostInputChange}
-        //       name="title"
-        //       placeholder="Give it a title ..."
-        //       value={post.title}
-        //       _placeholder={{ color: "inherit" }}
-        //     />
-        //     <FormHelperText>Keep it short and sweet!</FormHelperText>
-        //     <FormErrorMessage>Please enter a title</FormErrorMessage>
-        //   </FormControl>
-
-        //   <FormControl
-        //     variant="floating"
-        //     id="content"
-        //     isRequired
-        //     isInvalid={postError.content}
-        //     my={5}
-        //   >
-        //     <FormLabel>Content</FormLabel>
-        //     <SimpleMDE
-        //       placeholder="What's on your mind?"
-        //       value={post.content}
-        //       onChange={(value) => setPost({ ...post, content: value })}
-        //     />
-        //     <FormErrorMessage>Please fill content</FormErrorMessage>
-        //   </FormControl>
-
-        //   <FormControl
-        //     variant="floating"
-        //     id="categoryIndex"
-        //     isInvalid={postError.categoryIndex}
-        //     my={5}
-        //   >
-        //     <FormLabel>Category</FormLabel>
-        //     <Select
-        //       placeholder="Select Category"
-        //       value={selectedCategory}
-        //       onChange={(e: ChangeEvent) => setSelectedCategory(e.target.value)}
-        //     >
-        //       {postsCommentsStore.categories.map((category: string, index) => (
-        //         <option key={index} value={index}>
-        //           {category}
-        //         </option>
-        //       ))}
-        //     </Select>
-        //     <FormErrorMessage>Please select a category</FormErrorMessage>
-        //   </FormControl>
-
-        //   {image && (
-        //     <Image
-        //       src={URL.createObjectURL(image)}
-        //       alt="Cover image"
-        //       width="100%"
-        //       height="100%"
-        //       objectFit="contain"
-        //       crossOrigin="anonymous"
-        //       unoptimized={true}
-        //     />
-        //   )}
-
-        //   <Box my={5}>
-        //     <Input
-        //       id="selectImage"
-        //       type="file"
-        //       accept="image/*"
-        //       onChange={handleFileChange}
-        //       ref={fileRef}
-        //       style={{ display: "none" }}
-        //     />
-        //     <Button minW={150} onClick={triggerOnChange} isDisabled={isLoading}>
-        //       {isLoading ? <Spinner /> : "Add cover image"}
-        //     </Button>
-
-        //     <Button
-        //       minW={150}
-        //       ml={5}
-        //       onClick={submitPost}
-        //       isDisabled={isLoading}
-        //     >
-        //       {isLoading ? <Spinner /> : "Publish"}
-        //     </Button>
-        //   </Box>
-        // </>
       )}
     </Box>
   )
