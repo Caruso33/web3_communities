@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types"
-import { Community } from "./../typechain-types/contracts/Community"
+import type { Community } from "../typechain-types/contracts/Community"
 
 export default async function createComment(
   taskArgs: any,

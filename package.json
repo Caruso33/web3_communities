@@ -11,9 +11,15 @@
     "test:watch": "nodemon --exec 'hardhat test' -w ./tests/* -w ./contracts/*",
     "coverage": "yarn hardhat coverage",
     "node": "yarn hardhat node",
+    "typechain": "yarn typechain",
     "deploy": "yarn hardhat deploy",
     "fetchCategories": "yarn hardhat fetchCategories --address DEPLOYED_ADDRESS --network localhost",
-    "createComment": "yarn hardhat createComment --address DEPLOYED_ADDRESS --postid 1 --content 'To the mars 🚀' --network localhost"
+    "createComment": "yarn hardhat createComment --address DEPLOYED_ADDRESS --postid 1 --content 'To the mars 🚀' --network localhost",
+    "graph:init": "graph init",
+    "graph:code": "cd subgraph && graph codegen",
+    "graph:build": "cd subgraph && graph build",
+    "graph:auth": "cd subgraph && graph auth --product hosted-service",
+    "graph:deploy": "cd subgraph && graph deploy --product hosted-service caruso33/web3-community-buidler"
   },
   "dependencies": {
     "hardhat": "^2.10.1"

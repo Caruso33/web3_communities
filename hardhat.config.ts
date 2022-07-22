@@ -108,6 +108,10 @@ const config: HardhatUserConfig = {
       1: 0, // use first account for mainnet (chainId 1)
     },
   },
+  typechain: {
+    outDir: "typechain-types",
+    target: "ethers-v5",
+  },
 }
 
 export default config

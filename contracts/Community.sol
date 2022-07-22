@@ -21,7 +21,7 @@ contract Community is Ownable {
         address author;
         uint256 id;
         uint256 postId;
-        string content;
+        string hash;
         uint256 createdAt;
         uint256 lastUpdatedAt;
     }
@@ -30,7 +30,7 @@ contract Community is Ownable {
         address author;
         uint256 id;
         string title;
-        string content;
+        string hash;
         uint256 categoryIndex;
         bool published;
         uint256 createdAt;
@@ -118,7 +118,7 @@ contract Community is Ownable {
         post.author = msg.sender;
         post.id = postId;
         post.title = title;
-        post.content = hash;
+        post.hash = hash;
         post.categoryIndex = categoryIndex;
         post.published = true;
         post.createdAt = block.timestamp;
@@ -147,7 +147,7 @@ contract Community is Ownable {
         Post storage post = idToPost[postId];
 
         post.title = title;
-        post.content = hash;
+        post.hash = hash;
         post.categoryIndex = categoryIndex;
         post.published = published;
         post.lastUpdatedAt = block.timestamp;
@@ -180,7 +180,7 @@ contract Community is Ownable {
         comment.author = msg.sender;
         comment.id = comments.length;
         comment.postId = postId;
-        comment.content = hash;
+        comment.hash = hash;
         comment.createdAt = block.timestamp;
         comment.lastUpdatedAt = block.timestamp;
 
@@ -204,7 +204,7 @@ contract Community is Ownable {
         Comment[] storage comments = postIdToComments[postId];
 
         Comment storage comment = comments[commentId];
-        comment.content = hash;
+        comment.hash = hash;
         comment.lastUpdatedAt = block.timestamp;
 
         // not needed, storage pointers!

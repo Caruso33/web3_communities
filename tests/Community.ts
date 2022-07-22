@@ -121,7 +121,7 @@ describe("Community", async () => {
       expect(post.author).to.equal(ownerAddress)
       expect(post.id).to.equal(postId)
       expect(post.title).to.equal(title)
-      expect(post.content).to.equal(hash)
+      expect(post.hash).to.equal(hash)
       expect(post.published).to.equal(published)
       expect(post.createdAt).to.equal(block.timestamp)
       expect(post.lastUpdatedAt).to.equal(block.timestamp)
@@ -131,11 +131,11 @@ describe("Community", async () => {
 
       post = await community.fetchPostById(postId)
       expect(post.title).to.equal(title)
-      expect(post.content).to.equal(hash)
+      expect(post.hash).to.equal(hash)
 
       post = await community.fetchPostByHash(hash)
       expect(post.title).to.equal(title)
-      expect(post.content).to.equal(hash)
+      expect(post.hash).to.equal(hash)
     })
 
     it("Should update a post", async () => {
@@ -156,7 +156,7 @@ describe("Community", async () => {
 
       const post = await community.fetchPostById(postId)
       expect(post.title).to.equal(title)
-      expect(post.content).to.equal(hash)
+      expect(post.hash).to.equal(hash)
 
       const tx = await community.updatePost(
         postId,
@@ -184,7 +184,7 @@ describe("Community", async () => {
       expect(updatedPost.author).to.equal(ownerAddress)
       expect(updatedPost.id).to.equal(postId)
       expect(updatedPost.title).to.equal(updateTitle)
-      expect(updatedPost.content).to.equal(updateHash)
+      expect(updatedPost.hash).to.equal(updateHash)
       expect(updatedPost.published).to.equal(updatePublished)
       expect(updatedPost.createdAt).to.equal(post.createdAt)
       expect(updatedPost.lastUpdatedAt).to.equal(block.timestamp)
@@ -209,7 +209,7 @@ describe("Community", async () => {
 
       const post = await community.fetchPostById(postId)
       expect(post.title).to.equal(title)
-      expect(post.content).to.equal(hash)
+      expect(post.hash).to.equal(hash)
 
       const tx = community
         .connect(accounts[1])
@@ -261,7 +261,7 @@ describe("Community", async () => {
 
       expect(comment.author).to.equal(ownerAddress)
       expect(comment.id).to.equal(commentId)
-      expect(comment.content).to.equal(hash)
+      expect(comment.hash).to.equal(hash)
       expect(comment.createdAt).to.equal(block.timestamp)
       expect(comment.lastUpdatedAt).to.equal(block.timestamp)
 
@@ -299,7 +299,7 @@ describe("Community", async () => {
       const comments = await community.fetchCommentsOfPost(postId)
       const comment = comments[0]
 
-      expect(comment.content).to.equal(hash)
+      expect(comment.hash).to.equal(hash)
 
       expect(comments.length).to.equal(commentLength)
 
@@ -322,7 +322,7 @@ describe("Community", async () => {
 
       expect(updatedComment.author).to.equal(ownerAddress)
       expect(updatedComment.id).to.equal(commentId)
-      expect(updatedComment.content).to.equal(updatedHash)
+      expect(updatedComment.hash).to.equal(updatedHash)
       expect(updatedComment.createdAt).to.equal(comment.createdAt)
       expect(updatedComment.lastUpdatedAt).to.equal(block.timestamp)
 
@@ -346,7 +346,7 @@ describe("Community", async () => {
       const comments = await community.fetchCommentsOfPost(postId)
       const comment = comments[0]
 
-      expect(comment.content).to.equal(hash)
+      expect(comment.hash).to.equal(hash)
 
       expect(comments.length).to.equal(commentLength)
 
@@ -381,7 +381,7 @@ describe("Community", async () => {
       const comments = await community.fetchCommentsOfPost(postId)
       const comment = comments[1]
 
-      expect(comment.content).to.equal(hash2)
+      expect(comment.hash).to.equal(hash2)
 
       expect(comments.length).to.equal(commentLength)
 
@@ -393,14 +393,14 @@ describe("Community", async () => {
         .withArgs(postId, ownerAddress, commentId, block.timestamp)
 
       const updatedComments = await community.fetchCommentsOfPost(postId)
-      expect(updatedComments[0].content).to.equal(hash1)
-      expect(updatedComments[2].content).to.equal(hash3)
+      expect(updatedComments[0].hash).to.equal(hash1)
+      expect(updatedComments[2].hash).to.equal(hash3)
 
       expect(updatedComments[commentId].author).to.equal(
         ethers.constants.AddressZero
       )
       expect(updatedComments[commentId].id).to.equal(0)
-      expect(updatedComments[commentId].content).to.equal("")
+      expect(updatedComments[commentId].hash).to.equal("")
       expect(updatedComments[commentId].createdAt).to.equal(0)
       expect(updatedComments[commentId].lastUpdatedAt).to.equal(0)
     })
