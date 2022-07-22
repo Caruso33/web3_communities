@@ -4,11 +4,10 @@ import type { NextPage } from "next"
 import { default as NextLink } from "next/link"
 import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-// @ts-ignore
-import type { PostStruct } from "../../typechain-types/contracts/Community"
 import useLoadContracts from "../hooks/useLoadContract"
 import { setPosts } from "../state/postComment"
 import { RootState } from "../state/store"
+import type { Community } from "../typechain-types/contracts/Community"
 
 const Home: NextPage = () => {
   useLoadContracts()
@@ -61,49 +60,57 @@ const Home: NextPage = () => {
           {isLoading ? (
             <Spinner />
           ) : (
-            postsCommentsStore.posts.map((post: PostStruct, index) => {
-              return (
-                <Box
-                  key={`${post.id}_${index}`}
-                  display="flex"
-                  p={5}
-                  shadow="md"
-                  borderWidth="1px"
-                  w="60vw"
-                  _hover={{
-                    shadow: "xl",
-                    borderWidth: "2px",
-                  }}
-                >
-                  <Box w="100%" style={{ cursor: "pointer" }}>
-                    <NextLink href={`/post/${post.content}`} passHref>
-                      <Link>
-                        <ChevronRightIcon
-                          boxSize={50}
-                          style={{ height: "100%", float: "right" }}
-                        />
-
-                        <Box>
-                          <Heading fontSize="xl">{post.title}</Heading>
-                          <Text noOfLines={1}>by {post.author}</Text>
-                        </Box>
-                      </Link>
-                    </NextLink>
-
-                    <NextLink
-                      href={`https://ipfs.io/ipfs/${post.content}`}
-                      passHref
-                    >
-                      <Box mt={5}>
+            postsCommentsStore.posts.map(
+              (post: Community.PostStruct, index) => {
+                return (
+                  <Box
+                    key={`${post.id}_${index}`}
+                    display="flex"
+                    p={5}
+                    shadow="md"
+                    borderWidth="1px"
+                    w="60vw"
+                    _hover={{
+                      shadow: "xl",
+                      borderWidth: "2px",
+                    }}
+                  >
+                    <Box w="100%" style={{ cursor: "pointer" }}>
+                      <NextLink href={`/post/${post.content}`} passHref>
                         <Link>
-                          <Text noOfLines={3}>Content at: {post.content}</Text>
+                          <ChevronRightIcon
+                            boxSize={50}
+                            style={{ height: "100%", float: "right" }}
+                          />
+
+                          <Box>
+                            <Heading fontSize="xl">
+                              {post.title as string}
+                            </Heading>
+                            <Text noOfLines={1}>
+                              by {post.author as string}
+                            </Text>
+                          </Box>
                         </Link>
-                      </Box>
-                    </NextLink>
+                      </NextLink>
+
+                      <NextLink
+                        href={`https://ipfs.io/ipfs/${post.content}`}
+                        passHref
+                      >
+                        <Box mt={5}>
+                          <Link>
+                            <Text noOfLines={3}>
+                              Content at: {post.content as string}
+                            </Text>
+                          </Link>
+                        </Box>
+                      </NextLink>
+                    </Box>
                   </Box>
-                </Box>
-              )
-            })
+                )
+              }
+            )
           )}
 
           {postsCommentsStore.isPostsLoaded &&

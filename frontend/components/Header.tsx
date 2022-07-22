@@ -35,11 +35,12 @@ function Header() {
           <NextLink href="/" passHref>
             <Link>
               <Image
-                src="/logo-small-transparent.png"
+                src="../public/logo-small-transparent.png"
                 alt="Web3 Community Builder"
                 // 1080 × 446
                 width="146"
                 height="60"
+                unoptimized={true}
               />
             </Link>
           </NextLink>

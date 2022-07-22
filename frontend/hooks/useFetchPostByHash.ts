@@ -1,10 +1,8 @@
 import { useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { Community } from "../../typechain-types/contracts/Community"
 import { setIsPostLoading, setPost } from "../state/postComment"
 import { RootState } from "../state/store"
-// @ts-ignore
-import type { PostStructOutput } from "./../../typechain-types/contracts/Blog.sol/Community"
+import type { Community } from "../typechain-types/contracts/Community"
 
 function useFetchPostByHash(hash: string) {
   const contractStore = useSelector((state: RootState) => state.contract)
@@ -23,9 +21,8 @@ function useFetchPostByHash(hash: string) {
 
       try {
         dispatch(setIsPostLoading(true))
-        const post: PostStructOutput = await communityContract?.fetchPostByHash(
-          hash
-        )
+        const post: Community.PostStructOutput =
+          await communityContract?.fetchPostByHash(hash)
         if (post) {
           dispatch(setPost(post))
         }

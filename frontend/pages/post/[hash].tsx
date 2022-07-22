@@ -16,11 +16,7 @@ import { useCallback, useEffect, useLayoutEffect, useState } from "react"
 import ReactMarkdown from "react-markdown"
 import { useDispatch, useSelector } from "react-redux"
 import { useAccount, useSigner } from "wagmi"
-import type {
-  // @ts-ignore
-  CommentStructOutput,
-  Community,
-} from "../../../typechain-types/contracts/Community"
+import type { Community } from "../../../typechain-types/contracts/Community"
 import useFetchPostByHash from "../../hooks/useFetchPostByHash"
 import useLoadContracts from "../../hooks/useLoadContract"
 import {
@@ -129,7 +125,7 @@ export default function Post() {
     try {
       dispatch(setIsCommentsLoading(true))
       const comments = await communityContract?.fetchCommentsOfPost(
-        postsCommentsStore.post.id
+        (postsCommentsStore.post as Community.PostStruct).id
       )
       if (comments) {
         dispatch(setComments(comments))
@@ -154,7 +150,7 @@ export default function Post() {
 
   useLayoutEffect(
     () => () => {
-      dispatch(setPost(null))
+      dispatch(setPost({}))
       dispatch(setComments([]))
       dispatch(setIsCommentsLoaded(false))
     },
@@ -180,7 +176,7 @@ export default function Post() {
 
       const data = {
         author: await signer.getAddress(),
-        postId: postsCommentsStore.post.id,
+        postId: (postsCommentsStore.post as Community.PostStruct).id,
         content: comment,
       }
 
@@ -188,7 +184,7 @@ export default function Post() {
       const cid = await savePostToIpfs(
         data,
         `${new Date().toLocaleString()}_${
-          postsCommentsStore.post.id
+          (postsCommentsStore.post as Community.PostStruct).id
         }_comment.json`
       )
       if (!cid) if (!cid) throw Error("Failed to save comment to IPFS")
@@ -255,7 +251,7 @@ export default function Post() {
 
             <Box w="60vw">
               <Heading textAlign="center" as="h1" mb={5}>
-                {postsCommentsStore.post.title}
+                {postsCommentsStore.post.title as string}
               </Heading>
 
               {isContentLoading ? (
@@ -311,7 +307,8 @@ export default function Post() {
                   </Heading>
 
                   {postsCommentsStore.comments.map(
-                    (comment: CommentStructOutput, index) => (
+                    // @ts-ignore
+                    (comment: Community.CommentStructOutput, index) => (
                       <Box
                         key={`${comment.id}_${index}`}
                         w="100%"
@@ -319,9 +316,11 @@ export default function Post() {
                         shadow="md"
                         borderWidth="1px"
                       >
-                        <Text noOfLines={1}>{comment.author}</Text>
+                        <Text noOfLines={1}>{comment.author as string}</Text>
 
-                        <ReactMarkdown>{comment.content}</ReactMarkdown>
+                        <ReactMarkdown>
+                          {comment.content as string}
+                        </ReactMarkdown>
                       </Box>
                     )
                   )}

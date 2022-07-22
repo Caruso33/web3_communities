@@ -5,7 +5,7 @@ import { useRouter } from "next/router"
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useAccount, useSigner } from "wagmi"
-import { Community } from "../../../typechain-types/contracts/Community"
+import type { Community } from "../../typechain-types/contracts/Community"
 import WritePost from "../../components/WritePost"
 import useFetchPostByHash from "../../hooks/useFetchPostByHash"
 import useLoadContracts from "../../hooks/useLoadContract"
@@ -69,8 +69,9 @@ function EditPost() {
         postsCommentsStore.post &&
         !post.id
       ) {
-        const { id, author, published } = postsCommentsStore.post
+        // const { id, author, published } = postsCommentsStore.post
 
+        // @ts-ignore
         let res = await web3StorageClient.get(postsCommentsStore.post.content)
 
         if (res?.ok) {

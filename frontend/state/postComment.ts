@@ -1,11 +1,6 @@
 import type { PayloadAction } from "@reduxjs/toolkit"
 import { createSlice } from "@reduxjs/toolkit"
-import type {
-  // @ts-ignore
-  CommentStruct,
-  // @ts-ignore
-  PostStruct,
-} from "../../typechain-types/contracts/Community"
+import type { Community } from "../typechain-types/contracts/Community"
 
 const initialState: PostState = {
   isCategoriesLoading: false,
@@ -47,7 +42,7 @@ export const PostCommentSlice = createSlice({
     setIsPostsLoaded: (state, action: PayloadAction<boolean>) => {
       state.isPostsLoaded = action.payload
     },
-    setPosts: (state, action: PayloadAction<PostStruct[]>) => {
+    setPosts: (state, action: PayloadAction<Community.PostStruct[]>) => {
       state.isPostsLoading = false
       state.isPostsLoaded = !!action.payload
       state.posts = action.payload
@@ -56,7 +51,7 @@ export const PostCommentSlice = createSlice({
     setIsPostLoading: (state, action: PayloadAction<boolean>) => {
       state.isPostLoading = action.payload
     },
-    setPost: (state, action: PayloadAction<PostStruct>) => {
+    setPost: (state, action: PayloadAction<Community.PostStruct | {}>) => {
       state.isPostLoading = false
       state.isPostLoaded = !!action.payload
       state.post = action.payload
@@ -68,7 +63,7 @@ export const PostCommentSlice = createSlice({
     setIsCommentsLoaded: (state, action: PayloadAction<boolean>) => {
       state.isCommentsLoaded = action.payload
     },
-    setComments: (state, action: PayloadAction<CommentStruct[]>) => {
+    setComments: (state, action: PayloadAction<Community.CommentStruct[]>) => {
       state.isCommentsLoading = false
       state.comments = action.payload
     },
@@ -98,13 +93,13 @@ export interface PostState {
 
   isPostsLoading: boolean
   isPostsLoaded: boolean
-  posts: PostStruct[]
+  posts: Community.PostStruct[]
 
   isPostLoading: boolean
   isPostLoaded: boolean
-  post: PostStruct
+  post: Community.PostStruct | {}
 
   isCommentsLoading: boolean
   isCommentsLoaded: boolean
-  comments: CommentStruct[]
+  comments: Community.CommentStruct[]
 }
