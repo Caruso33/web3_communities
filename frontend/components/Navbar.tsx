@@ -12,7 +12,7 @@ import {
 import { default as NextLink } from "next/link"
 import { ReactNode } from "react"
 
-const Links = ["Home", "Create-Post"]
+const Links = ["Home", "Create Post", "Search & Statistics"]
 
 const NavLink = ({ children, name }: { children: ReactNode; name: string }) => {
   const href = name === "Home" ? "/" : `/${name.toLowerCase()}`
@@ -55,7 +55,7 @@ export default function Navbar() {
               display={{ base: "none", md: "flex" }}
             >
               {Links.map((link) => (
-                <NavLink key={link} name={link}>
+                <NavLink key={link} name={link.replaceAll(/\s/g, "_")}>
                   {link}
                 </NavLink>
               ))}
