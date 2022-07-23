@@ -13,7 +13,7 @@ import dynamic from "next/dynamic"
 import Image from "next/image"
 import { default as NextLink } from "next/link"
 import { useRouter } from "next/router"
-import { useCallback, useEffect, useLayoutEffect, useState } from "react"
+import { useLayoutEffect, useState } from "react"
 import ReactMarkdown from "react-markdown"
 import { useDispatch, useSelector } from "react-redux"
 import { useAccount, useSigner } from "wagmi"
@@ -26,6 +26,7 @@ import {
   setIsCommentsLoaded,
   setPost,
   setIsPostLoaded,
+  Post,
 } from "../../state/postComment"
 import { RootState } from "../../state/store"
 import savePostToIpfs from "../../utils/saveToIpfs"
@@ -35,7 +36,7 @@ const SimpleMDE = dynamic(() => import("react-simplemde-editor"), {
   ssr: false,
 })
 
-export default function Post() {
+export default function PostDetail() {
   useLoadContracts()
 
   const { address } = useAccount()
@@ -56,7 +57,7 @@ export default function Post() {
   const [comment, setComment] = useState("")
 
   useFetchPostByHash(hash as string)
-  // useFetchCommentsOfPost()
+  useFetchCommentsOfPost()
 
   useLayoutEffect(() => {
     return () => {
@@ -91,7 +92,7 @@ export default function Post() {
 
       const data = {
         author: await signer.getAddress(),
-        postId: (postsCommentsStore.post as Community.PostStruct).id,
+        postId: (postsCommentsStore.post as Post).id,
         content: comment,
       }
 
@@ -99,7 +100,7 @@ export default function Post() {
       const cid = (await savePostToIpfs(
         data,
         `${new Date().toLocaleString().replaceAll(/(\W)/g, "_")}_${
-          (postsCommentsStore.post as Community.PostStruct).id
+          (postsCommentsStore.post as Post).id
         }_comment.json`
       )) as string
       if (!cid) throw Error("Failed to save comment to IPFS")
@@ -232,7 +233,11 @@ export default function Post() {
                           by {comment.author as string}
                         </Text>
 
-                        <ReactMarkdown>{comment.hash as string}</ReactMarkdown>
+                        <Box mt={5}>
+                          <ReactMarkdown>
+                            {comment.content as string}
+                          </ReactMarkdown>
+                        </Box>
                       </Flex>
                     )
                   )}
