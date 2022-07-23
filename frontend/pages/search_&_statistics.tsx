@@ -2,6 +2,7 @@ import { ApolloClient, gql, InMemoryCache } from "@apollo/client"
 import {
   Box,
   Button,
+  Flex,
   FormControl,
   FormErrorMessage,
   FormHelperText,
@@ -9,10 +10,16 @@ import {
   Heading,
   Input,
   Select,
+  Spinner,
+  Text,
 } from "@chakra-ui/react"
-import { useCallback, useEffect, useState } from "react"
+import { fromUnixTime } from "date-fns"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import ReactMarkdown from "react-markdown"
 import queryResponse from "../api/queryResponse"
 import getSearchQuery from "../api/searchQueries"
+import PostCard from "../components/PostCard"
+import { Comment, Post } from "../state/postComment"
 
 const APIURL =
   "https://api.thegraph.com/subgraphs/name/caruso33/web3-community-buidler"
@@ -29,9 +36,17 @@ export default function Search() {
     category: false,
   })
 
-  const categories = ["title", "author", "costContent", "commentContent"]
-  const [posts, setPosts] = useState([])
-  const [comments, setComments] = useState([])
+  const categories = useMemo(
+    () => ["Title", "Author", "Post Content", "Comment Content"],
+    []
+  )
+  const [postCount, setPostCount] = useState([])
+  const [commentCount, setCommentCount] = useState([])
+
+  const [posts, setPosts] = useState<Post[]>([])
+  const [comments, setComments] = useState<Comment[]>([])
+
+  const [isLoading, setIsLoading] = useState(false)
 
   const querySearch = useCallback(
     (searchType: string) => {
@@ -48,37 +63,75 @@ export default function Search() {
         setSearchError({ term: false, category: false })
       }
 
-      if (!searchType) searchType = search.category
+      if (!searchType) searchType = categories[search.category as number]
+
+      setIsLoading(true)
 
       const query = getSearchQuery(searchType, search.term)
 
+      setPosts([])
+      setComments([])
+
       client
-        .query({
-          query: gql(query),
-        })
-        .then(({ data }) =>
+        .query({ query: gql(query) })
+        .then(({ data }) => {
+          console.dir(data)
           queryResponse(searchType, data, {
+            setPostCount,
+            setCommentCount,
             setPosts,
             setComments,
           })
-        )
+        })
         .catch((err) => {
           console.log("Error fetching data: ", err)
         })
+        .finally(() => setIsLoading(false))
     },
-    [search, searchError]
+    [search, searchError, categories]
   )
 
   useEffect(() => {
-    querySearch("posts")
-    querySearch("comments")
-  }, [querySearch])
+    if (postCount.length === 0 && commentCount.length === 0) {
+      querySearch("Post Count")
+      querySearch("Comment Count")
+    }
+  }, [postCount, commentCount, querySearch])
 
   return (
     <Box m={5}>
-      <Heading>Search {"&"} Statistics</Heading>
+      <Heading>Statistics</Heading>
+
+      <Box w="60vw" mx="auto" my={5}>
+        <Text>Total Posts: {postCount || "-"}</Text>
+        <Text>Total Comments: {commentCount || "-"}</Text>
+      </Box>
+
+      <Heading mt={5}>Search</Heading>
 
       <Box w="60vw" mx="auto">
+        <FormControl
+          variant="floating"
+          id="category"
+          isRequired
+          isInvalid={searchError.category}
+          my={5}
+        >
+          <FormLabel>Category</FormLabel>
+          <Select
+            placeholder="Select Category"
+            value={search.category}
+            onChange={(e) => setSearch({ ...search, category: e.target.value })}
+          >
+            {categories.map((category: string, index: number) => (
+              <option key={index} value={index}>
+                {category}
+              </option>
+            ))}
+          </Select>
+          <FormErrorMessage>Please select a category</FormErrorMessage>
+        </FormControl>
+
         <FormControl
           variant="floating"
           id="term"
@@ -98,28 +151,40 @@ export default function Search() {
           <FormErrorMessage>Please enter a title</FormErrorMessage>
         </FormControl>
 
-        <FormControl
-          variant="floating"
-          id="categoryIndex"
-          isInvalid={searchError.category}
-          my={5}
-        >
-          <FormLabel>Category</FormLabel>
-          <Select
-            placeholder="Select Category"
-            value={search.category}
-            onChange={(e) => setSearch({ ...search, category: e.target.value })}
-          >
-            {categories.map((category: string, index: number) => (
-              <option key={index} value={index}>
-                {category}
-              </option>
-            ))}
-          </Select>
-          <FormErrorMessage>Please select a category</FormErrorMessage>
-        </FormControl>
+        <Button isDisabled={isLoading} onClick={() => querySearch("")}>
+          {isLoading ? <Spinner /> : "Search"}
+        </Button>
 
-        <Button onClick={querySearch}>Search</Button>
+        <Box my={5}>
+          {posts.map((post: any) => (
+            <Box key={post.id} mb={5}>
+              <PostCard post={post} />
+            </Box>
+          ))}
+
+          {comments.map((comment: any) => (
+            <Flex
+              key={`${comment.id}`}
+              w="100%"
+              p={5}
+              shadow="md"
+              borderWidth="1px"
+              flexDirection="column"
+              mb={5}
+            >
+              <Text noOfLines={1} as="i" alignSelf="flex-end" px={2}>
+                by {comment.author as string}
+              </Text>
+              <Text alignSelf="flex-end" px={2}>
+                {fromUnixTime(comment.createdAt).toLocaleString()}
+              </Text>
+
+              <Box mt={5}>
+                <ReactMarkdown>{comment.content as string}</ReactMarkdown>
+              </Box>
+            </Flex>
+          ))}
+        </Box>
       </Box>
     </Box>
   )

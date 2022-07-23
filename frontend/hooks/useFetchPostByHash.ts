@@ -33,8 +33,6 @@ function useFetchPostByHash(hash: string) {
           const { content, coverImage: coverImageHash } = fileContent
           let coverImage = ""
           if (coverImageHash) {
-            console.dir(coverImageHash)
-
             coverImage = await getIpfsJsonContent(
               coverImageHash,
               "readAsDataURL"

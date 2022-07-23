@@ -1,42 +1,34 @@
 function queryResponse(
   searchType: string,
   data: any,
-  { setPosts, setComments }: any
+  { setPostCount, setCommentCount, setPosts, setComments }: any
 ) {
   console.log(`Subgraph query: ${searchType}, data: `)
   console.dir(data)
 
   switch (searchType) {
-    case "posts":
-      return setPosts(data.posts)
+    case "Post Count":
+      console.dir(data.counter.count)
+      return setPostCount(data.counter.count)
 
-    case "comments":
-      return setComments(data.comments)
+    case "Comment Count":
+      return setCommentCount(data.counter.count)
 
-    case "title":
-      data.posts.forEach((post) => {
-        console.log("Post: ", post)
-      })
-      break
-    case "author":
-      data.posts.forEach((post) => {
-        console.log("Post: ", post)
-      })
-      data.comments.forEach((comment) => {
-        console.log("Comment: ", comment)
-      })
-
+    case "Author":
+      setPosts(data.posts)
+      setComments(data.comments)
       break
 
-    case "postSearch":
-      data.postSearch.forEach((post) => {
-        console.log("Post: ", post)
-      })
+    case "Title":
+      setPosts(data.postTitleSearch)
       break
-    case "commentSearch":
-      data.commentSearch.forEach((comment) => {
-        console.log("Comment: ", comment)
-      })
+
+    case "Post Content":
+      setPosts(data.postSearch)
+      break
+
+    case "Comment Content":
+      setComments(data.commentSearch)
       break
 
     default:

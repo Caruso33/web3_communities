@@ -1,89 +1,103 @@
-const postsQuery = `
+const postCountQuery = `
+query {
+  counter(id: "post") {
+    count
+  }
+}
+`
+
+const commentCountQuery = `
+query {
+  counter(id: "comment") {
+    count
+  }
+}
+`
+
+const titleQuery = (search: string) => `
   query {
-    posts(orderBy: createdAt, orderDirection: desc) {
+    postTitleSearch(text: "'${search}'") {
         id
-      }
+        author
+        title
+        hash
+        content
+        published
+        createdAt
+    }
   }
 `
 
-const commentsQuery = `
-    query {
-        comments(orderBy: createdAt, orderDirection: desc) {
-            id
-        }
-    }
-
-`
-
-const titleQuery = (title: string) => `
-    query {
-        posts(where: {title: ${title}}) {
-            id
-            content
-            createdAt
-        }
-    }
-`
-
 const authorQuery = (author: string) => `
-    query {
-        posts(where: {author: ${author}}) {
-            id
-            title
-            createdAt
-        }
-        comments(where: {author: ${author}}) {
-            id
-            postId
-            createdAt
-        }
+  query {
+    posts(where: {author: "${author}"}) {
+      id
+      author
+      title
+      hash
+      content
+      published
+      createdAt
     }
+    comments(where: {author: "${author}"}) {
+        id
+        postId
+        author
+        hash
+        content
+        createdAt
+    }
+  }
 `
 
 const postSearchQuery = (search: string) => `
-    query {
-        postSearch(text: ${search}) {
-            id
-            title
-            content
-            published
-            createdAt
-        }
+  query {
+    postSearch(text: "'${search}'") {
+        id
+        author
+        title
+        hash
+        content
+        published
+        createdAt
     }
+  }
 `
 
 const commentSearchQuery = (search: string) => `
-    query {
-        commentSearch(text: ${search}) {
-            id
-            content
-            createdAt
-        }
+  query {
+    commentSearch(text: "'${search}'") {
+        id
+        postId
+        author
+        content
+        createdAt
     }
+  }
 `
 
 function getSearchQuery(searchType: string, searchTerm: string) {
   switch (searchType) {
-    case "posts":
-      return postsQuery
+    case "Post Count":
+      return postCountQuery
 
-    case "comments":
-      return commentsQuery
+    case "Comment Count":
+      return commentCountQuery
 
-    case "title":
+    case "Title":
       return titleQuery(searchTerm)
 
-    case "author":
+    case "Author":
       return authorQuery(searchTerm)
 
-    case "postContent":
+    case "Post Content":
       return postSearchQuery(searchTerm)
 
-    case "commentContent":
+    case "Comment Content":
       return commentSearchQuery(searchTerm)
 
     default:
-      return ""
+      throw Error(`Unknown search type: ${searchType}`)
   }
 }
 export { getSearchQuery as default }

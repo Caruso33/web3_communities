@@ -1,4 +1,4 @@
-import { Box, Heading, Text } from "@chakra-ui/react"
+import { Box, Heading, Link, Text } from "@chakra-ui/react"
 import "easymde/dist/easymde.min.css"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/router"
@@ -38,6 +38,9 @@ function CreatePost() {
   const [post, setPost] = useState(initialState)
   const [postError, setPostError] = useState({ title: false, content: false })
   const [image, setImage] = useState(null)
+
+  const [cid, setCid] = useState("")
+  const [tx, setTx] = useState("")
 
   const [selectedCategory, setSelectedCategory] = useState<number>(-1)
 
@@ -111,11 +114,13 @@ function CreatePost() {
           .replaceAll(/(\W)/g, "_")}_${selectedCategory}_${post.title}.json`
       )) as string
       if (!cid) throw Error("Failed to save post to IPFS")
+      setCid(cid)
 
       // Smart Contract
       const tx = await communityContract
         ?.connect(signer)
         ?.createPost(post.title, cid, categoryIndex)
+      setTx(tx.hash)
       await tx.wait()
 
       dispatch(setIsPostsLoaded(false))
@@ -183,6 +188,22 @@ function CreatePost() {
         />
       ) : (
         <Text>Please make sure to be connected with Metamask.</Text>
+      )}
+
+      {cid && (
+        <Text>
+          Post created. You can view it on{" "}
+          <Link href={`https://ipfs.io/ipfs/${cid}`}>ipfs.io/ipfs/{cid}</Link>
+        </Text>
+      )}
+
+      {tx && (
+        <Text>
+          Creating Post... Transaction hash: {tx}
+          <Link href={`https://mumbai.polyscan.com/address/${tx}`}>
+            Check on Polyscan
+          </Link>
+        </Text>
       )}
     </Box>
   )

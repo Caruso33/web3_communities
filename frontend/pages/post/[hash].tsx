@@ -23,6 +23,7 @@ import useFetchCommentsOfPost from "../../hooks/useFetchCommentsOfPost"
 import useFetchPostByHash from "../../hooks/useFetchPostByHash"
 import useLoadContracts from "../../hooks/useLoadContract"
 import {
+  Comment,
   Post,
   setComments,
   setIsCommentsLoaded,
@@ -226,7 +227,7 @@ export default function PostDetail() {
 
                   {postsCommentsStore.comments.map(
                     // @ts-ignore
-                    (comment: Community.CommentStructOutput, index) => (
+                    (comment: Comment, index) => (
                       <Flex
                         key={`${comment.id}_${index}`}
                         w="100%"
