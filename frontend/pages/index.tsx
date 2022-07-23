@@ -8,6 +8,7 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react"
+import { fromUnixTime } from "date-fns"
 import type { NextPage } from "next"
 import { default as NextLink } from "next/link"
 import { useEffect, useState } from "react"
@@ -68,62 +69,67 @@ const Home: NextPage = () => {
           {isLoading ? (
             <Spinner />
           ) : (
-            postsCommentsStore.posts.map(
-              (post: Community.PostStruct, index) => {
-                return (
-                  <Box
-                    key={`${post.id}_${index}`}
-                    display="flex"
-                    p={5}
-                    shadow="md"
-                    borderWidth="1px"
-                    w="60vw"
-                    _hover={{
-                      shadow: "xl",
-                      borderWidth: "2px",
-                    }}
-                  >
-                    <Box w="100%" style={{ cursor: "pointer" }}>
-                      <NextLink href={`/post/${post.hash}`} passHref>
+            postsCommentsStore.posts.map((post: Post, index) => {
+              return (
+                <Box
+                  key={`${post.id}_${index}`}
+                  display="flex"
+                  p={5}
+                  shadow="md"
+                  borderWidth="1px"
+                  w="60vw"
+                  _hover={{
+                    shadow: "xl",
+                    borderWidth: "2px",
+                  }}
+                >
+                  <Box w="100%" style={{ cursor: "pointer" }}>
+                    <NextLink href={`/post/${post.hash}`} passHref>
+                      <Link>
+                        <ChevronRightIcon
+                          boxSize={50}
+                          style={{ height: "100%", float: "right" }}
+                        />
+
+                        <Flex flexDirection="column">
+                          <Text
+                            noOfLines={1}
+                            as="i"
+                            alignSelf="flex-end"
+                            px={2}
+                          >
+                            by {post.author as string}
+                          </Text>
+
+                          <Text alignSelf="flex-end" px={2}>
+                            {fromUnixTime(
+                              post?.createdAt?.toNumber()
+                            ).toLocaleString()}
+                          </Text>
+
+                          <Heading fontSize="xl">
+                            {post.title as string}
+                          </Heading>
+                        </Flex>
+                      </Link>
+                    </NextLink>
+
+                    <NextLink
+                      href={`https://ipfs.io/ipfs/${post.hash}`}
+                      passHref
+                    >
+                      <Box mt={5}>
                         <Link>
-                          <ChevronRightIcon
-                            boxSize={50}
-                            style={{ height: "100%", float: "right" }}
-                          />
-
-                          <Flex flexDirection="column">
-                            <Text
-                              noOfLines={1}
-                              as="i"
-                              alignSelf="flex-end"
-                              px={2}
-                            >
-                              by {post.author as string}
-                            </Text>
-                            <Heading fontSize="xl">
-                              {post.title as string}
-                            </Heading>
-                          </Flex>
+                          <Text noOfLines={3}>
+                            Content at: {post.hash as string}
+                          </Text>
                         </Link>
-                      </NextLink>
-
-                      <NextLink
-                        href={`https://ipfs.io/ipfs/${post.hash}`}
-                        passHref
-                      >
-                        <Box mt={5}>
-                          <Link>
-                            <Text noOfLines={3}>
-                              Content at: {post.hash as string}
-                            </Text>
-                          </Link>
-                        </Box>
-                      </NextLink>
-                    </Box>
+                      </Box>
+                    </NextLink>
                   </Box>
-                )
-              }
-            )
+                </Box>
+              )
+            })
           )}
 
           {postsCommentsStore.isPostsLoaded &&

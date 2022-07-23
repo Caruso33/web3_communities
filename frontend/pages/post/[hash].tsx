@@ -8,6 +8,7 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react"
+import { fromUnixTime } from "date-fns"
 import "easymde/dist/easymde.min.css"
 import dynamic from "next/dynamic"
 import Image from "next/image"
@@ -22,11 +23,11 @@ import useFetchCommentsOfPost from "../../hooks/useFetchCommentsOfPost"
 import useFetchPostByHash from "../../hooks/useFetchPostByHash"
 import useLoadContracts from "../../hooks/useLoadContract"
 import {
+  Post,
   setComments,
   setIsCommentsLoaded,
-  setPost,
   setIsPostLoaded,
-  Post,
+  setPost,
 } from "../../state/postComment"
 import { RootState } from "../../state/store"
 import savePostToIpfs from "../../utils/saveToIpfs"
@@ -167,6 +168,11 @@ export default function PostDetail() {
               <Text noOfLines={1} as="i" alignSelf="flex-end" px={2}>
                 by {postsCommentsStore.post?.author as string}
               </Text>
+              <Text alignSelf="flex-end" px={2}>
+                {fromUnixTime(
+                  postsCommentsStore.post?.createdAt?.toNumber()
+                ).toLocaleString()}
+              </Text>
 
               <Heading textAlign="center" as="h1" my={5}>
                 {postsCommentsStore.post?.title as string}
@@ -231,6 +237,11 @@ export default function PostDetail() {
                       >
                         <Text noOfLines={1} as="i" alignSelf="flex-end" px={2}>
                           by {comment.author as string}
+                        </Text>
+                        <Text alignSelf="flex-end" px={2}>
+                          {fromUnixTime(
+                            comment.createdAt?.toNumber()
+                          ).toLocaleString()}
                         </Text>
 
                         <Box mt={5}>
