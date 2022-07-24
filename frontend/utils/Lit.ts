@@ -78,6 +78,7 @@ class Lit {
     }
 
     const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain })
+
     const symmetricKey = await this.litNodeClient.getEncryptionKey({
       accessControlConditions,
       toDecrypt: encryptedSymmetricKey,
@@ -97,21 +98,21 @@ class Lit {
 export default Lit
 
 export const erc20Chains = [
-//   "ethereum",
-//   "polygon",
-//   "fantom",
-//   "bsc",
-//   "arbitrum",
-//   "avalanche",
-//   "harmony",
-//   "kovan",
+  //   "ethereum",
+  //   "polygon",
+  //   "fantom",
+  //   "bsc",
+  //   "arbitrum",
+  //   "avalanche",
+  //   "harmony",
+  //   "kovan",
   "mumbai",
-//   "goerli",
-//   "ropsten",
-//   "rinkeby",
-//   "optimism",
-//   "solana",
-//   "solanaDevnet",
-//   "solanaTestnet",
-//   "cosmos",
+  //   "goerli",
+  //   "ropsten",
+  //   "rinkeby",
+  //   "optimism",
+  //   "solana",
+  //   "solanaDevnet",
+  //   "solanaTestnet",
+  //   "cosmos",
 ]

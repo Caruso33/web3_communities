@@ -1,4 +1,5 @@
-import LitJsSdk from "lit-js-sdk"
+// import LitJsSdk from "lit-js-sdk"
+const LitJsSdk = require("lit-js-sdk");
 
 const client = new LitJsSdk.LitNodeClient()
 // const chain = "ethereum"
@@ -6,8 +7,6 @@ const client = new LitJsSdk.LitNodeClient()
 
 class Lit {
   private litNodeClient: any
-
-  constructor() {}
 
   async connect() {
     await client.connect()
@@ -37,7 +36,11 @@ class Lit {
     return accessControlConditions
   }
 
-  async encrypt(message: string, accessControlConditions: any, chain: string) {
+  async encrypt(
+    message: string,
+    accessControlConditions: any[],
+    chain: string
+  ) {
     if (!this.litNodeClient) {
       await this.connect()
     }
@@ -95,21 +98,21 @@ class Lit {
 export default Lit
 
 export const erc20Chains = [
-  "ethereum",
-  "polygon",
-  "fantom",
-  "bsc",
-  "arbitrum",
-  "avalanche",
-  "harmony",
-  "kovan",
+  //   "ethereum",
+  //   "polygon",
+  //   "fantom",
+  //   "bsc",
+  //   "arbitrum",
+  //   "avalanche",
+  //   "harmony",
+  //   "kovan",
   "mumbai",
-  "goerli",
-  "ropsten",
-  "rinkeby",
-  "optimism",
-  "solana",
-  "solanaDevnet",
-  "solanaTestnet",
-  "cosmos",
+  //   "goerli",
+  //   "ropsten",
+  //   "rinkeby",
+  //   "optimism",
+  //   "solana",
+  //   "solanaDevnet",
+  //   "solanaTestnet",
+  //   "cosmos",
 ]

@@ -94,10 +94,16 @@ export interface Post extends Community.PostStructOutput {
   content: string
   coverImageHash: string
   coverImage: string
+  accessControlConditions: string
+  encryptedString: string
+  encryptedSymmetricKey: string
 }
 
 export interface Comment extends Community.CommentStructOutput {
   content: string
+  accessControlConditions: string
+  encryptedString: string
+  encryptedSymmetricKey: string
 }
 
 export interface PostState {

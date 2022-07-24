@@ -13,6 +13,8 @@ async function getIpfsJsonContent(
       let files = await res.files()
 
       const file = files[0]
+      if (readAs === "none") return file
+
       let fileContent = await getFileContent(file, readAs)
 
       if (readAs === "readAsText") fileContent = JSON.parse(fileContent)

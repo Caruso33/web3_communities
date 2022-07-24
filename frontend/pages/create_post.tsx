@@ -1,3 +1,4 @@
+import deployment from "../utils/deployment.json"
 import { Box, Heading, Link, Text } from "@chakra-ui/react"
 import "easymde/dist/easymde.min.css"
 import { useRouter } from "next/router"
@@ -39,6 +40,9 @@ function CreatePost() {
 
   const dispatch = useDispatch()
 
+  const deploymentChainData =
+    deployment[process.env.NEXT_PUBLIC_DEPLOYED_CHAIN_ID]
+
   /* configure initial state to be used in the component */
   const [post, setPost] = useState(initialState)
   const [postError, setPostError] = useState({
@@ -50,7 +54,7 @@ function CreatePost() {
 
   const [isUseEncryption, setIsUseEncryption] = useState(false)
   const [erc20EncryptToken, setErc20EncryptToken] = useState({
-    address: contractStore.community.address,
+    address: deploymentChainData?.address,
     minBalance: "0",
     chain: -1,
   })
@@ -147,10 +151,12 @@ function CreatePost() {
         const accessControlChain = erc20Chains[erc20EncryptToken.chain]
 
         const accessControl = lit.getAccessControlConditions(
-          erc20EncryptToken.address,
+          erc20EncryptToken?.address,
           accessControlChain,
-          `${+erc20EncryptToken.minBalance - 1}`
+          erc20EncryptToken.minBalance
         )
+        // <Blob> encryptedString
+        // <Uint8Array(32)> symmetricKey
         // @ts-ignore
         let { encryptedString, encryptedSymmetricKey } = await lit.encrypt(
           content,
@@ -163,15 +169,16 @@ function CreatePost() {
           `${fileBaseName}_encryptedString.file`
         )
 
-        const uploadedCID = await web3StorageClient.put([encryptedStringFile], {
+        const cidString = await web3StorageClient.put([encryptedStringFile], {
           wrapWithDirectory: false,
         })
-        if (!uploadedCID) throw Error("Failed to save encrypted string to IPFS")
-        console.log("Uploaded encrypted string to ipfs, CID: ", uploadedCID)
+        if (!cidString) throw Error("Failed to save encrypted string to IPFS")
+        console.log("Uploaded encrypted string to ipfs, CID: ", cidString)
 
         data.accessControlConditions = JSON.stringify(accessControl)
-        data.encryptedString = uploadedCID
+        data.encryptedString = cidString
         data.encryptedSymmetricKey = encryptedSymmetricKey
+        data.accessControlChain = accessControlChain
         data.content = ""
       }
 
@@ -184,25 +191,20 @@ function CreatePost() {
       }
 
       // IPFS
-      setTimeout(async () => {
-        const cid = (await savePostToIpfs(
-          data,
-          `${fileBaseName}.json`
-        )) as string
-        if (!cid) throw Error("Failed to save post to IPFS")
-        setCid(cid)
+      const cid = (await savePostToIpfs(data, `${fileBaseName}.json`)) as string
+      if (!cid) throw Error("Failed to save post to IPFS")
+      setCid(cid)
 
-        // Smart Contract
-        const tx = await communityContract
-          ?.connect(signer)
-          ?.createPost(data.title, cid, data.categoryIndex)
-        setTx(tx.hash)
-        await tx.wait()
+      // Smart Contract
+      const tx = await communityContract
+        ?.connect(signer)
+        ?.createPost(data.title, cid, data.categoryIndex)
+      setTx(tx.hash)
+      await tx.wait()
 
-        dispatch(setIsPostsLoaded(false))
+      dispatch(setIsPostsLoaded(false))
 
-        router.push(`/`)
-      }, 5000)
+      router.push(`/`)
     } finally {
       setIsLoading(false)
     }
