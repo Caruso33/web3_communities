@@ -4,6 +4,7 @@ import { setIsPostLoading, setPost } from "../state/postComment"
 import { RootState } from "../state/store"
 import type { Community } from "../typechain-types/contracts/Community"
 import getIpfsJsonContent from "../utils/getIpfsJsonContent"
+import Lit from "../utils/Lit"
 
 function useFetchPostByHash(hash: string) {
   const contractStore = useSelector((state: RootState) => state.contract)
@@ -30,7 +31,14 @@ function useFetchPostByHash(hash: string) {
             throw new Error("Could not fetch post content")
           }
 
-          const { content, coverImage: coverImageHash } = fileContent
+          const {
+            content,
+            coverImage: coverImageHash,
+            accessControlConditions,
+            encryptedString,
+            encryptedSymmetricKey,
+          } = fileContent
+
           let coverImage = ""
           if (coverImageHash) {
             coverImage = await getIpfsJsonContent(
@@ -39,8 +47,37 @@ function useFetchPostByHash(hash: string) {
             )
           }
 
+          if (encryptedString && encryptedSymmetricKey) {
+            const encryptedStringFile = await getIpfsJsonContent(
+              encryptedString,
+              "none"
+            )
+
+            const lit = new Lit()
+            const decryptedString = await lit.decrypt(
+              encryptedStringFile,
+              encryptedSymmetricKey,
+              JSON.parse(accessControlConditions),
+              "mumbai"
+            )
+
+            console.dir("decryptedString", decryptedString)
+
+            fileContent.content = decryptedString
+          }
+
           // @ts-ignore
-          dispatch(setPost({ ...post, content, coverImageHash, coverImage }))
+          dispatch(
+            setPost({
+              ...post,
+              content,
+              coverImageHash,
+              coverImage,
+              accessControlConditions,
+              encryptedString,
+              encryptedSymmetricKey,
+            })
+          )
         }
       } catch (error) {
         console.error(error)
