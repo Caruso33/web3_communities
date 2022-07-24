@@ -20,6 +20,7 @@
     "ethers": "^5.6.9",
     "framer-motion": "^6.5.1",
     "graphql": "^16.5.0",
+    "lit-js-sdk": "^1.1.202",
     "next": "12.2.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",

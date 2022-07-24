@@ -22,7 +22,8 @@
     "graph:deploy": "cd subgraph && graph deploy --product hosted-service caruso33/web3-community-buidler"
   },
   "dependencies": {
-    "hardhat": "^2.10.1"
+    "hardhat": "^2.10.1",
+    "lit-js-sdk": "^1.1.202"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.4.7",

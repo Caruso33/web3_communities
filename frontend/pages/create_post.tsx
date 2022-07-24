@@ -1,15 +1,16 @@
 import { Box, Heading, Link, Text } from "@chakra-ui/react"
 import "easymde/dist/easymde.min.css"
-import dynamic from "next/dynamic"
 import { useRouter } from "next/router"
 import { useEffect, useRef, useState } from "react" // new
 import { useDispatch, useSelector } from "react-redux"
-import { useAccount, useSigner } from "wagmi"
+import { useAccount, useNetwork, useSigner, useSwitchNetwork } from "wagmi"
 import { Community } from "../../typechain-types/contracts/Community"
 import WritePost from "../components/WritePost"
+import { useIsMounted } from "../hooks"
 import useLoadContracts from "../hooks/useLoadContract"
 import { setCategories, setIsPostsLoaded } from "../state/postComment"
 import { RootState } from "../state/store"
+import Lit, { erc20Chains } from "../utils/Lit"
 import savePostToIpfs from "../utils/saveToIpfs"
 import getWeb3StorageClient from "../utils/web3Storage"
 
@@ -24,8 +25,12 @@ const initialState = {
 function CreatePost() {
   useLoadContracts()
 
+  const mounted = useIsMounted()
+
   const { isConnected } = useAccount()
   const { data: signer } = useSigner()
+  const { chain } = useNetwork()
+  const { switchNetworkAsync } = useSwitchNetwork()
 
   const contractStore = useSelector((state: RootState) => state.contract)
   const postsCommentsStore = useSelector(
@@ -36,8 +41,19 @@ function CreatePost() {
 
   /* configure initial state to be used in the component */
   const [post, setPost] = useState(initialState)
-  const [postError, setPostError] = useState({ title: false, content: false })
+  const [postError, setPostError] = useState({
+    title: false,
+    content: false,
+    erc20EncryptToken: false,
+  })
   const [image, setImage] = useState(null)
+
+  const [isUseEncryption, setIsUseEncryption] = useState(false)
+  const [erc20EncryptToken, setErc20EncryptToken] = useState({
+    address: "",
+    minBalance: "0",
+    chain: -1,
+  })
 
   const [cid, setCid] = useState("")
   const [tx, setTx] = useState("")
@@ -80,8 +96,20 @@ function CreatePost() {
       })
       return
     }
+    if (
+      isUseEncryption &&
+      (!erc20EncryptToken.address ||
+        !erc20EncryptToken.minBalance ||
+        erc20EncryptToken.chain == -1)
+    ) {
+      setPostError({
+        ...postError,
+        erc20EncryptToken: true,
+      })
+      return
+    }
 
-    setPostError({ title: false, content: false })
+    setPostError({ title: false, content: false, erc20EncryptToken: false })
 
     const communityContract = contractStore?.community as Community
     if (!communityContract) {
@@ -100,32 +128,84 @@ function CreatePost() {
       setIsLoading(true)
 
       const categoryIndex = selectedCategory != -1 ? selectedCategory : 0
+
       const data = {
         ...post,
         author: await signer.getAddress(),
         categoryIndex,
+        accessControlConditions: "",
+        encryptedString: "",
+        encryptedSymmetricKey: "",
+      }
+
+      const fileBaseName = `${new Date()
+        .toLocaleString()
+        .replaceAll(/(\W)/g, "_")}_${selectedCategory}_${post.title}`
+
+      if (isUseEncryption) {
+        const lit = new Lit()
+        const accessControlChain = erc20Chains[erc20EncryptToken.chain]
+
+        const accessControl = lit.getAccessControlConditions(
+          erc20EncryptToken.address,
+          accessControlChain,
+          `${+erc20EncryptToken.minBalance - 1}`
+        )
+        // @ts-ignore
+        let { encryptedString, encryptedSymmetricKey } = await lit.encrypt(
+          content,
+          accessControl,
+          accessControlChain
+        )
+
+        console.dir("accessControl", accessControl)
+        console.dir("encryptedString", encryptedString)
+        console.dir("encryptedSymmetricKey", encryptedSymmetricKey)
+
+        const encryptedStringFile = new File(
+          [encryptedString],
+          `${fileBaseName}_encryptedString.file`
+        )
+
+        const uploadedCID = await web3StorageClient.put([encryptedStringFile], {
+          wrapWithDirectory: false,
+        })
+        if (!uploadedCID) throw Error("Failed to save encrypted string to IPFS")
+        console.log("Uploaded encrypted string to ipfs, CID: ", uploadedCID)
+
+        data.accessControlConditions = JSON.stringify(accessControl)
+        data.encryptedString = uploadedCID
+        data.encryptedSymmetricKey = encryptedSymmetricKey
+      }
+
+      if (+process.env.NEXT_PUBLIC_DEPLOYED_CHAIN_ID! !== chain?.id) {
+        console.log(
+          "Switching back to chain: " +
+            process.env.NEXT_PUBLIC_DEPLOYED_CHAIN_ID
+        )
+        await switchNetworkAsync(+process.env.NEXT_PUBLIC_DEPLOYED_CHAIN_ID!)
       }
 
       // IPFS
-      const cid = (await savePostToIpfs(
-        data,
-        `${new Date()
-          .toLocaleString()
-          .replaceAll(/(\W)/g, "_")}_${selectedCategory}_${post.title}.json`
-      )) as string
-      if (!cid) throw Error("Failed to save post to IPFS")
-      setCid(cid)
+      setTimeout(async () => {
+        const cid = (await savePostToIpfs(
+          data,
+          `${fileBaseName}.json`
+        )) as string
+        if (!cid) throw Error("Failed to save post to IPFS")
+        setCid(cid)
 
-      // Smart Contract
-      const tx = await communityContract
-        ?.connect(signer)
-        ?.createPost(post.title, cid, categoryIndex)
-      setTx(tx.hash)
-      await tx.wait()
+        // Smart Contract
+        const tx = await communityContract
+          ?.connect(signer)
+          ?.createPost(data.title, cid, data.categoryIndex)
+        setTx(tx.hash)
+        await tx.wait()
 
-      dispatch(setIsPostsLoaded(false))
+        dispatch(setIsPostsLoaded(false))
 
-      router.push(`/`)
+        router.push(`/`)
+      }, 5000)
     } finally {
       setIsLoading(false)
     }
@@ -165,7 +245,7 @@ function CreatePost() {
         Create Post
       </Heading>
 
-      {isConnected ? (
+      {mounted && isConnected ? (
         <WritePost
           mode="create"
           isLoading={isLoading}
@@ -183,6 +263,10 @@ function CreatePost() {
           }
           handleFileChange={handleFileChange}
           fileRef={fileRef}
+          isUseEncryption={isUseEncryption}
+          setIsUseEncryption={setIsUseEncryption}
+          erc20EncryptToken={erc20EncryptToken}
+          setErc20EncryptToken={setErc20EncryptToken}
           triggerOnChange={triggerOnChange}
           submitPost={createNewPost}
         />
