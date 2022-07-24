@@ -1,0 +1,50 @@
+specVersion: 0.0.4
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Community
+    network: mumbai
+    source:
+      address: "0xe73b7C2Df18ad8EDe0F56fb41a15Bc0e0103D5cd"
+      abi: Community
+      startBlock: 27297087
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+
+      entities:
+        - Counter
+        # - Category
+        - Post
+        - Comment
+        - OwnershipTransferred
+
+      abis:
+        - name: Community
+          file: ./abis/Community.json
+
+      eventHandlers:
+        - event: PostCreated(indexed address,uint256,string,string,uint256,uint256)
+          handler: handlePostCreated
+        - event: PostUpdated(indexed address,uint256,string,string,uint256,bool,uint256,uint256)
+          handler: handlePostUpdated
+        - event: CommentCreated(indexed uint256,indexed address,uint256,string,uint256)
+          handler: handleCommentCreated
+        - event: CommentUpdated(indexed uint256,indexed address,uint256,string,uint256,uint256)
+          handler: handleCommentUpdated
+        - event: CommentDeleted(indexed uint256,indexed address,uint256,uint256)
+          handler: handleCommentDeleted
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+
+      # callHandlers:
+      #   - function: createCategory(string)
+      #     handler: handleCreateCategory
+
+      file: ./src/community.ts
+
+features:
+  - fullTextSearch
+  - ipfsOnEthereumContracts
