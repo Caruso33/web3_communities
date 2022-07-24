@@ -118,9 +118,11 @@ export default function WritePost(props: any) {
         />
       )}
 
-      <Checkbox onChange={(e) => setIsUseEncryption(e.target.checked)}>
-        Use encryption
-      </Checkbox>
+      <Box>
+        <Checkbox onChange={(e) => setIsUseEncryption(e.target.checked)}>
+          Use encryption
+        </Checkbox>
+      </Box>
 
       {isUseEncryption && (
         <>

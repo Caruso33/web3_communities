@@ -50,7 +50,7 @@ function CreatePost() {
 
   const [isUseEncryption, setIsUseEncryption] = useState(false)
   const [erc20EncryptToken, setErc20EncryptToken] = useState({
-    address: "",
+    address: contractStore.community.address,
     minBalance: "0",
     chain: -1,
   })
@@ -158,10 +158,6 @@ function CreatePost() {
           accessControlChain
         )
 
-        console.dir("accessControl", accessControl)
-        console.dir("encryptedString", encryptedString)
-        console.dir("encryptedSymmetricKey", encryptedSymmetricKey)
-
         const encryptedStringFile = new File(
           [encryptedString],
           `${fileBaseName}_encryptedString.file`
@@ -176,6 +172,7 @@ function CreatePost() {
         data.accessControlConditions = JSON.stringify(accessControl)
         data.encryptedString = uploadedCID
         data.encryptedSymmetricKey = encryptedSymmetricKey
+        data.content = ""
       }
 
       if (+process.env.NEXT_PUBLIC_DEPLOYED_CHAIN_ID! !== chain?.id) {
