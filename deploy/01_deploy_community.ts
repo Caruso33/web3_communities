@@ -1,10 +1,10 @@
+import "dotenv/config"
 import fs from "fs"
-import { network } from "hardhat"
+import { ethers, network } from "hardhat"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
 import path from "path"
 import { developmentChains } from "../scripts/hardhat-helper-config"
 import { verify } from "../scripts/verify"
-import "dotenv/config"
 
 const deploy = async (hre: HardhatRuntimeEnvironment) => {
   const { getNamedAccounts, deployments } = hre
@@ -21,8 +21,11 @@ const deploy = async (hre: HardhatRuntimeEnvironment) => {
     : 6
 
   const communityName = "EthGlobal Community"
+  const tokenName = "ETH Global City"
+  const tokenSymbol = "GloCi"
+  const initialSupply = 1_000
 
-  const args = [communityName]
+  const args = [communityName, tokenName, tokenSymbol, initialSupply]
 
   const community = await deploy("Community", {
     from: deployer,

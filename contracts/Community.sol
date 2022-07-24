@@ -4,6 +4,8 @@ pragma solidity ^0.8.14;
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+// import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 
 error Community__onlyOwner();
 error Community__onlyPostAuthor();
@@ -11,8 +13,8 @@ error Community__onlyCommentAuthor();
 error Community__DuplicateCategory();
 error Community__PostIdNotValid();
 
-contract Community is Ownable {
-    string public name;
+contract Community is Ownable, ERC20 {
+    string public communityName;
 
     using Counters for Counters.Counter;
     Counters.Counter private _postIds;
@@ -83,12 +85,18 @@ contract Community is Ownable {
         uint256 deletedAt
     );
 
-    constructor(string memory _name) {
-        name = _name;
+    constructor(
+        string memory _communityName,
+        string memory _tokenName,
+        string memory _symbol,
+        uint256 _initialSupply
+    ) ERC20(_tokenName, _symbol) {
+        communityName = _communityName;
+        _mint(msg.sender, _initialSupply);
     }
 
-    function updateName(string memory _name) public onlyOwner {
-        name = _name;
+    function updateName(string memory _communityName) public onlyOwner {
+        communityName = _communityName;
     }
 
     function createCategory(string memory _name) public onlyOwner {
