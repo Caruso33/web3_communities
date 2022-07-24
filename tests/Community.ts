@@ -9,10 +9,19 @@ describe("Community", async () => {
   let ownerAddress: string
   let categories = ["Category 1", "Category 2"]
 
+  const communityName = "EthGlobal Community"
+  const tokenName = "ETH Global City"
+  const tokenSymbol = "GloCi"
+  const initialSupply = 1_000
   beforeEach(async () => {
     const Community = await ethers.getContractFactory("Community")
 
-    community = await Community.deploy("My Community")
+    community = await Community.deploy(
+      communityName,
+      tokenName,
+      tokenSymbol,
+      initialSupply
+    )
     await community.deployed()
 
     accounts = await ethers.getSigners()
@@ -25,7 +34,7 @@ describe("Community", async () => {
     })
 
     it("Should set the right name", async () => {
-      expect(await community.name()).to.equal("My Community")
+      expect(await community.communityName()).to.equal(communityName)
     })
 
     it("Should update the name", async () => {
@@ -33,7 +42,7 @@ describe("Community", async () => {
 
       await community.updateName(newName)
 
-      expect(await community.name()).to.equal(newName)
+      expect(await community.communityName()).to.equal(newName)
     })
 
     it("Should revert when not owner on update the name", async () => {
