@@ -1,4 +1,13 @@
-# web3_communities
+# Web3 Community Buidler
+
+## Team
+
+Tobias Leinss
+
+https://leinss.xyz
+https://linkedin.com/in/tobias-leinss/
+https://github.com/caruso33
+https://twitter.com/caruso33
 
 ## Idea
 
@@ -55,3 +64,8 @@ Is used for post and comment content encryption. The user can choose if he wants
 ### Spheron
 
 Is used for deployment of the frontend.
+[The deployed frontend can be found here](https://web3-communities-s2gp87.spheron.app/)
+
+### Backup frontend
+
+[The backup frontend can be found here](web3-community-buidler.vercel.app/)
