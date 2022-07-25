@@ -32,7 +32,6 @@ function useFetchPostByHash(hash: string) {
           }
 
           const {
-            content,
             coverImage: coverImageHash,
             accessControlConditions,
             encryptedString,
@@ -54,7 +53,7 @@ function useFetchPostByHash(hash: string) {
             )
 
             const lit = new Lit()
-            const decryptedString = await lit.decrypt(
+            const { decryptedString } = await lit.decrypt(
               encryptedStringFile,
               encryptedSymmetricKey,
               JSON.parse(accessControlConditions),
@@ -70,7 +69,7 @@ function useFetchPostByHash(hash: string) {
           dispatch(
             setPost({
               ...post,
-              content,
+              content: fileContent.content,
               coverImageHash,
               coverImage,
               accessControlConditions,
