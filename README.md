@@ -1,12 +1,15 @@
 # Web3 Community Buidler
 
+[![EthGlobal Showcase Page](https://i.imgur.com/Tq9OGib.png)](https://ethglobal.com/showcase/web3-community-buidler-ntm80)
+[EthGlobal Showcase Page](https://ethglobal.com/showcase/web3-community-buidler-ntm80)
+
 ## Team
 
 Tobias Leinss
 
-https://leinss.xyz
-https://linkedin.com/in/tobias-leinss/
-https://github.com/caruso33
+https://leinss.xyz  
+https://linkedin.com/in/tobias-leinss/  
+https://github.com/caruso33  
 https://twitter.com/caruso33
 
 ## Idea
