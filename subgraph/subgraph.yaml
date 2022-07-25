@@ -6,9 +6,9 @@ dataSources:
     name: Community
     network: mumbai
     source:
-      address: "0xe73b7C2Df18ad8EDe0F56fb41a15Bc0e0103D5cd"
+      address: "0x5DfA37185fb3Cf5C16e12584805A8315D8d4DB57"
       abi: Community
-      startBlock: 27297087
+      startBlock: 27314247
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
