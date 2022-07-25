@@ -180,7 +180,15 @@ export default function PostDetail() {
               </Heading>
 
               <Box alignSelf="flex-start" mb={50}>
-                <ReactMarkdown>{postsCommentsStore.post.content}</ReactMarkdown>
+                {postsCommentsStore.post.content === "" ? (
+                  <Text color="red.500">
+                    No content, you might have no access rights to view content
+                  </Text>
+                ) : (
+                  <ReactMarkdown>
+                    {postsCommentsStore.post.content}
+                  </ReactMarkdown>
+                )}
               </Box>
 
               {postsCommentsStore.isCommentsLoading ? (

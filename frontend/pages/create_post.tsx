@@ -140,6 +140,7 @@ function CreatePost() {
         accessControlConditions: "",
         encryptedString: "",
         encryptedSymmetricKey: "",
+        accessControlChain: "",
       }
 
       const fileBaseName = `${new Date()
@@ -164,10 +165,16 @@ function CreatePost() {
           accessControlChain
         )
 
+        console.dir(encryptedString)
+
         const encryptedStringFile = new File(
           [encryptedString],
           `${fileBaseName}_encryptedString.file`
         )
+
+        const encryptedSymmetricKeyString = Buffer.from(
+          encryptedSymmetricKey
+        ).toString("utf-8")
 
         const cidString = await web3StorageClient.put([encryptedStringFile], {
           wrapWithDirectory: false,
@@ -177,7 +184,7 @@ function CreatePost() {
 
         data.accessControlConditions = JSON.stringify(accessControl)
         data.encryptedString = cidString
-        data.encryptedSymmetricKey = encryptedSymmetricKey
+        data.encryptedSymmetricKey = encryptedSymmetricKeyString
         data.accessControlChain = accessControlChain
         data.content = ""
       }

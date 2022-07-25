@@ -47,8 +47,6 @@ async function useFetchCommentsOfPost() {
         )
       }
 
-      console.dir(comments)
-
       dispatch(setComments(comments))
       dispatch(setIsCommentsLoaded(true))
     } catch (error) {
