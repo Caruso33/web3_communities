@@ -14,7 +14,7 @@ https://twitter.com/caruso33
 
 ## Idea
 
-Spin up a community in fast manner through deployment of a contract and frontend to commnicate with your audience in decentralized fashion.
+Spin up a community in fast manner through deployment of a contract and frontend to communicate with your audience in decentralized fashion.
 Use blog, comment, statistics, search and content encryption functionality. With the community there comes also a ERC20 token to check for the encryption against if the holder owns a token amount above given threshold.
 
 As this was a solo hack, time constraints meant unfortunately not being able to include a chat functionality (through using xmtp) and including meetups (through using poap as attendance proof).
